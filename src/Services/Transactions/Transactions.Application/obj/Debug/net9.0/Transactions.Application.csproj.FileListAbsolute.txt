@@ -1,0 +1,17 @@
+E:\Proyects\C#\InvestmentTracker\src\Services\Transactions\Transactions.Application\bin\Debug\net9.0\Transactions.Application.deps.json
+E:\Proyects\C#\InvestmentTracker\src\Services\Transactions\Transactions.Application\bin\Debug\net9.0\Transactions.Application.dll
+E:\Proyects\C#\InvestmentTracker\src\Services\Transactions\Transactions.Application\bin\Debug\net9.0\Transactions.Application.pdb
+E:\Proyects\C#\InvestmentTracker\src\Services\Transactions\Transactions.Application\bin\Debug\net9.0\EventBus.Messages.dll
+E:\Proyects\C#\InvestmentTracker\src\Services\Transactions\Transactions.Application\bin\Debug\net9.0\Transactions.Domain.dll
+E:\Proyects\C#\InvestmentTracker\src\Services\Transactions\Transactions.Application\bin\Debug\net9.0\Transactions.Domain.pdb
+E:\Proyects\C#\InvestmentTracker\src\Services\Transactions\Transactions.Application\bin\Debug\net9.0\EventBus.Messages.pdb
+E:\Proyects\C#\InvestmentTracker\src\Services\Transactions\Transactions.Application\obj\Debug\net9.0\Transactions.Application.csproj.AssemblyReference.cache
+E:\Proyects\C#\InvestmentTracker\src\Services\Transactions\Transactions.Application\obj\Debug\net9.0\Transactions.Application.GeneratedMSBuildEditorConfig.editorconfig
+E:\Proyects\C#\InvestmentTracker\src\Services\Transactions\Transactions.Application\obj\Debug\net9.0\Transactions.Application.AssemblyInfoInputs.cache
+E:\Proyects\C#\InvestmentTracker\src\Services\Transactions\Transactions.Application\obj\Debug\net9.0\Transactions.Application.AssemblyInfo.cs
+E:\Proyects\C#\InvestmentTracker\src\Services\Transactions\Transactions.Application\obj\Debug\net9.0\Transactions.Application.csproj.CoreCompileInputs.cache
+E:\Proyects\C#\InvestmentTracker\src\Services\Transactions\Transactions.Application\obj\Debug\net9.0\Transact.9F64630D.Up2Date
+E:\Proyects\C#\InvestmentTracker\src\Services\Transactions\Transactions.Application\obj\Debug\net9.0\Transactions.Application.dll
+E:\Proyects\C#\InvestmentTracker\src\Services\Transactions\Transactions.Application\obj\Debug\net9.0\refint\Transactions.Application.dll
+E:\Proyects\C#\InvestmentTracker\src\Services\Transactions\Transactions.Application\obj\Debug\net9.0\Transactions.Application.pdb
+E:\Proyects\C#\InvestmentTracker\src\Services\Transactions\Transactions.Application\obj\Debug\net9.0\ref\Transactions.Application.dll

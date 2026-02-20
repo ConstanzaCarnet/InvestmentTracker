@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  # 1. Base de datos
+  users-db:
+    container_name: investment-tracker-sql-db
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=WalletPassword123!
+    ports:
+      - "1433:1433"
+    networks:
+      - InvestmentTracker-network
+
+  # 2. Sistema de mensajería (RabbitMQ)
+  rabbitmq:
+    container_name: rabbitmq-invest-tracker
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"   # Puerto de datos (MassTransit lo usa)
+      - "15672:15672" # Puerto del panel visual (guest/guest)
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+    networks:
+      - InvestmentTracker-network
+
+  # 3. Microservicio UserService
+  users-service:
+    container_name: users-service
+    build:
+      context: .
+      dockerfile: src/Services/Users/Users.API/Dockerfile
+    ports:
+        - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__DefaultConnection=Server=users-db;Database=UsersDb;User Id=sa;Password=WalletPassword123!;TrustServerCertificate=True;
+      - EventBusSettings__HostAddress=rabbitmq://rabbitmq # Nombre del servicio de arriba
+    restart: on-failure # Agrega esto para que se recupere solo
+    depends_on:
+      - rabbitmq
+      - users-db
+    networks:
+      - InvestmentTracker-network
+
+   # 4. Microservicio Holdings (Antes Portfolio - Calcula el estado actual)
+  holdings-service:
+    container_name: holdings-service
+    build:
+      context: .
+      dockerfile: src/Services/Holdings/Holdings.API/Dockerfile
+    ports:
+      - "8081:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__DefaultConnection=Server=users-db;Database=HoldingsDb;User Id=sa;Password=WalletPassword123!;TrustServerCertificate=True;
+      - EventBusSettings__HostAddress=rabbitmq://rabbitmq
+    depends_on:
+      - rabbitmq
+      - users-db
+    networks:
+      - InvestmentTracker-network
+
+  # 5. Microservicio MarketData
+  marketdata-service:
+    container_name: marketdata-service
+    build:
+        context: .
+        dockerfile: src/Services/MarketData/MarketData.API/Dockerfile
+    ports:
+        - "8082:8080" # Usamos el puerto 8082 para no chocar con los otros
+    restart: on-failure
+    networks:
+        - InvestmentTracker-network
+
+   # 6. Microservicio Transaction
+  transactions-service:
+    image: ${DOCKER_REGISTRY-}transactions-service
+    container_name: transactions-service
+    build:
+        context: .
+        dockerfile: src/Services/Transactions/Transactions.API/Dockerfile
+    ports:
+        - "8083:8080"
+    environment:
+        - ASPNETCORE_ENVIRONMENT=Development
+        - ASPNETCORE_HTTP_PORTS=8080
+        - ConnectionStrings__TransactionConnectionString=Server=users-db;Database=TransactionDb;User Id=sa;Password=WalletPassword123!;TrustServerCertificate=True;
+        - EventBusSettings__HostAddress=rabbitmq://rabbitmq
+    depends_on:
+      - rabbitmq
+      - users-db
+    networks:
+      - InvestmentTracker-network
+networks:
+  InvestmentTracker-network: # La "tubería" invisible que los une a todos
+    driver: bridge

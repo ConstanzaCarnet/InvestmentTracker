@@ -1,0 +1,17 @@
+E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Application\bin\Debug\net9.0\Holdings.Application.deps.json
+E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Application\bin\Debug\net9.0\Holdings.Application.dll
+E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Application\bin\Debug\net9.0\Holdings.Application.pdb
+E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Application\bin\Debug\net9.0\EventBus.Messages.dll
+E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Application\bin\Debug\net9.0\Holdings.Domain.dll
+E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Application\bin\Debug\net9.0\Holdings.Domain.pdb
+E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Application\bin\Debug\net9.0\EventBus.Messages.pdb
+E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Application\obj\Debug\net9.0\Holdings.Application.csproj.AssemblyReference.cache
+E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Application\obj\Debug\net9.0\Holdings.Application.GeneratedMSBuildEditorConfig.editorconfig
+E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Application\obj\Debug\net9.0\Holdings.Application.AssemblyInfoInputs.cache
+E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Application\obj\Debug\net9.0\Holdings.Application.AssemblyInfo.cs
+E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Application\obj\Debug\net9.0\Holdings.Application.csproj.CoreCompileInputs.cache
+E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Application\obj\Debug\net9.0\Holdings.047E7FF7.Up2Date
+E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Application\obj\Debug\net9.0\Holdings.Application.dll
+E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Application\obj\Debug\net9.0\refint\Holdings.Application.dll
+E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Application\obj\Debug\net9.0\Holdings.Application.pdb
+E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Application\obj\Debug\net9.0\ref\Holdings.Application.dll

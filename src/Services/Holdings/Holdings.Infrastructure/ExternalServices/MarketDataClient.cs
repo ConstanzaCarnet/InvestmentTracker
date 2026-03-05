@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using Microsoft.Extensions.Logging;
 using Holdings.Application.Interfaces;
+using Holdings.Infrastructure.ExternalServices.Models; 
 
 namespace Holdings.Infrastructure.ExternalServices;
 
@@ -15,17 +16,14 @@ public class MarketDataClient : IMarketDataClient
         _logger = logger;
     }
 
-    public async Task<MarketPriceResponse?> GetPriceAsync(string ticker)
+    public async Task<decimal> GetPriceAsync(string ticker)
     {
-        try
-        {
-            // La URL base se configura en el Program.cs
-            return await _httpClient.GetFromJsonAsync<MarketPriceResponse>($"api/market/{ticker}");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error al conectar con MarketData para {Ticker}", ticker);
-            return null;
-        }
+        var response = await _httpClient.GetFromJsonAsync<MarketPriceDto>(
+            $"api/marketdata/{ticker}");
+
+        if (response == null)
+            throw new Exception("No se pudo obtener el precio del activo");
+
+        return response.Price;
     }
 }

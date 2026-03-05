@@ -9,6 +9,6 @@ public record TransactionBaseEvent
     public decimal Price { get; init; }
     public TransactionType Type { get; init; }  // "Buy" o "Sell"
     public DateTime CreatedAt { get; init; }
-    //control de lectura
+    //control de lectura de los mensajes, asi evitamos que se lean en cualquier orden, y que se procesen mensajes viejos o duplicados
     public long SequenceNumber { get; init; }
 }

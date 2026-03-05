@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Holdings.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3d14ab2d4157151a6999ecb31f2118cb9de0c616")]
 [assembly: System.Reflection.AssemblyProductAttribute("Holdings.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Holdings.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

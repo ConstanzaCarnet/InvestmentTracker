@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Holdings.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3d14ab2d4157151a6999ecb31f2118cb9de0c616")]
 [assembly: System.Reflection.AssemblyProductAttribute("Holdings.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Holdings.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -9,24 +9,33 @@ namespace Holdings.API.Services;
 public class HoldingsService : IHoldingsService
 {
     private readonly HoldingsDbContext _context;
-    private readonly IMarketDataClient _marketDataClient;
 
-    public HoldingsService(HoldingsDbContext context, IMarketDataClient marketDataClient)
+    public HoldingsService(HoldingsDbContext context)
     {
         _context = context;
-        _marketDataClient = marketDataClient;
     }
 
     public async Task<PortfolioDto> GetPortfolioAsync(Guid userId)
     {
-        // Aquí va tu lógica para sumar las posiciones y pedir precios a MarketData
-        // Por ahora puedes devolver un objeto vacío para que compile
-        return await Task.FromResult(new PortfolioDto());
+        var positions = await _context.Positions
+         .Where(p => p.UserId == userId)
+         .ToListAsync();
+
+        var resultPositions = positions.Select(p => new PositionDto
+        {
+            UserId = p.UserId,
+            Ticker = p.Ticker,
+            Quantity = p.Quantity,
+            AveragePrice = p.AveragePurchasePrice
+        }).ToList();
+
+        return new PortfolioDto
+        {
+            UserId = userId,
+            Positions = resultPositions,
+            TotalAssetsValue = resultPositions.Sum(p => p.Quantity * p.AveragePrice)
+        };
     }
 
-    public async Task<PositionDto?> GetPositionByTickerAsync(Guid userId, string ticker)
-    {
-        // Lógica para buscar un ticker específico
-        return null;
-    }
+
 }

@@ -8,5 +8,7 @@ public interface IHoldingsService
     Task<PortfolioDto> GetPortfolioAsync(Guid userId);
 
     // Si necesitas obtener solo una posición específica (ej: cuánto tengo de AAPL)
-    Task<PositionDto?> GetPositionByTickerAsync(Guid userId, string ticker);
+    //Task<PositionDto?> GetPositionByTickerAsync(Guid userId, string ticker);
+
+    Task RebuildPositionAsync(Guid userId, string ticker)
 }

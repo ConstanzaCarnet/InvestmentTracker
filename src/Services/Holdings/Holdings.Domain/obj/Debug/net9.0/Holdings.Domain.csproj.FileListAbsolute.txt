@@ -12,3 +12,4 @@ E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Domain\obj\Debug
 E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Domain\obj\Debug\net9.0\Holdings.Domain.pdb
 E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Domain\obj\Debug\net9.0\Holdings.Domain.genruntimeconfig.cache
 E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Domain\obj\Debug\net9.0\ref\Holdings.Domain.dll
+E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Domain\obj\Debug\net9.0\Holdings.Domain.sourcelink.json

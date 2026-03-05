@@ -28,13 +28,17 @@ namespace Holdings.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("LastUpdated")
-                        .HasColumnType("datetime2");
+                    b.Property<decimal>("CashBalance")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("AccountId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("Accounts");
                 });
@@ -45,12 +49,9 @@ namespace Holdings.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("AccountId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<decimal>("AveragePurchasePrice")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<long>("LastProcessedSequenceNumber")
                         .HasColumnType("bigint");
@@ -59,35 +60,22 @@ namespace Holdings.Infrastructure.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("Quantity")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<string>("Ticker")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId");
+                    b.HasIndex("UserId", "Ticker")
+                        .IsUnique();
 
                     b.ToTable("Positions");
-                });
-
-            modelBuilder.Entity("Holdings.Domain.Entities.Position", b =>
-                {
-                    b.HasOne("Holdings.Domain.Entities.Account", "Account")
-                        .WithMany("Positions")
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Account");
-                });
-
-            modelBuilder.Entity("Holdings.Domain.Entities.Account", b =>
-                {
-                    b.Navigation("Positions");
                 });
 #pragma warning restore 612, 618
         }

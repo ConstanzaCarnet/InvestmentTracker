@@ -4,7 +4,9 @@ namespace Holdings.Application.Interfaces;
 
 public interface IHoldingRepository
 {
-    Task<Account?> GetAccountByUserIdAsync(Guid userId);
-    Task CreateAccountAsync(Account account);
-    Task UpdateAccountAsync(Account account);
+    Task<Account?> GetByIdAsync(Guid userId);
+    Task<Position?> GetPositionAsync(Guid userId, string ticker);
+    Task AddPositionAsync(Position position);
+    void UpdatePosition(Position position);
+    void RemovePosition(Position position);
 }

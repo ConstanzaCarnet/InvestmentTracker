@@ -94,7 +94,7 @@ public class TransactionService : ITransactionService
 
 
             // 4. crea el evento de integración, para luego publicarlo mediante el outbox pattern
-            var payload = new TransactionBaseEvent
+            var integrationEvent = new TransactionCreatedEvent
             {
                 Id = transaction.Id,
                 UserId = transaction.UserId,
@@ -104,10 +104,6 @@ public class TransactionService : ITransactionService
                 Type = MapToEventType(transaction.Type),
                 CreatedAt = transaction.CreatedAt,
                 SequenceNumber = transaction.Version
-            };
-            var integrationEvent = new TransactionCreatedIntegrationEvent
-            {
-                Data = payload
             };
             var outboxMessage = new OutboxMessage
             {
@@ -185,26 +181,33 @@ public class TransactionService : ITransactionService
     //actualizar
     public async Task<(bool Success, string Message)> UpdateTransactionAsync(Guid id, TransactionRequest request)
     {
+        await using var dbTransaction = await _context.Database.BeginTransactionAsync();
+
         var transaction = await _repository.GetByIdAsync(id);
 
         if (transaction == null)
             return (false, "Transacción no encontrada");
 
-        // guardamos valores anteriores
         var oldQuantity = transaction.Quantity;
         var oldTicker = transaction.Ticker;
+        var oldPrice = transaction.Price;
+        var oldType = transaction.Type;
 
-        // aplicamos cambios
+        // aplicar cambios
         transaction.Quantity = request.Quantity;
         transaction.Price = request.Price;
         transaction.CreatedAt = request.Date;
-        transaction.Type =request.Type switch
+        transaction.Type = request.Type switch
         {
             EventTransactionType.BUY => DomainTransactionType.BUY,
             EventTransactionType.SELL => DomainTransactionType.SELL,
             _ => throw new ArgumentOutOfRangeException()
         };
+
         transaction.LastModified = DateTime.UtcNow;
+
+        // ⚠ importante
+        transaction.Version += 1;
 
         try
         {
@@ -217,41 +220,54 @@ public class TransactionService : ITransactionService
                 UserId = transaction.UserId,
                 Ticker = transaction.Ticker,
                 Quantity = transaction.Quantity,
-                PreviousQuantity = oldQuantity,
-                PreviousTicker = oldTicker,
                 Price = transaction.Price,
                 Type = MapToEventType(transaction.Type),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+
+                PreviousTicker = oldTicker,
+                PreviousQuantity = oldQuantity,
+                PreviousPrice = oldPrice,
+                PreviousType = MapToEventType(oldType),
+
+                SequenceNumber = transaction.Version
             };
 
             var outboxMessage = new OutboxMessage
             {
                 Type = @event.GetType().Name,
-                Content = JsonSerializer.Serialize(@event)
+                Content = JsonSerializer.Serialize(@event),
+                OccurredOnUtc = DateTime.UtcNow
             };
 
             _context.OutboxMessages.Add(outboxMessage);
             await _context.SaveChangesAsync();
 
+            await dbTransaction.CommitAsync();
+
             return (true, "Transacción actualizada");
         }
         catch (Exception ex)
         {
+            await dbTransaction.RollbackAsync();
             _logger.LogError(ex, "Error updating transaction");
-            return (false,"Error interno");
+            return (false, "Error interno");
         }
     }
 
+
     public async Task<(bool Success, string Message)> DeleteTransactionAsync(Guid id)
-    { 
+    {
+        await using var dbTransaction = await _context.Database.BeginTransactionAsync();
+
         var transaction = await _repository.GetByIdAsync(id);
-        if (transaction == null) return (false, "Transacción no encontrada");
+        if (transaction == null)
+            return (false, "Transacción no encontrada");
 
         try
         {
             _repository.Remove(transaction);
             await _context.SaveChangesAsync();
-            //publico el cambio
+
             var @event = new TransactionDeletedEvent
             {
                 Id = transaction.Id,
@@ -260,28 +276,31 @@ public class TransactionService : ITransactionService
                 Quantity = transaction.Quantity,
                 Price = transaction.Price,
                 Type = MapToEventType(transaction.Type),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                SequenceNumber = transaction.Version + 1
             };
+
             var outboxMessage = new OutboxMessage
             {
                 Type = @event.GetType().Name,
-                Content = JsonSerializer.Serialize(@event)
+                Content = JsonSerializer.Serialize(@event),
+                OccurredOnUtc = DateTime.UtcNow
             };
+
             _context.OutboxMessages.Add(outboxMessage);
             await _context.SaveChangesAsync();
 
+            await dbTransaction.CommitAsync();
+
             return (true, "Transacción eliminada");
         }
-        catch (Exception e)
-        { 
-           _logger.LogError(e, "Error deleting transaction");
-              return (false, "Error interno");
+        catch (Exception ex)
+        {
+            await dbTransaction.RollbackAsync();
+            _logger.LogError(ex, "Error deleting transaction");
+            return (false, "Error interno");
         }
-
     }
-
-
-
 
 
 }

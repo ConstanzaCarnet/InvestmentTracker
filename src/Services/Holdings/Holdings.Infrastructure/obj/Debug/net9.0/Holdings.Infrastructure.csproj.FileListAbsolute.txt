@@ -19,3 +19,4 @@ E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Infrastructure\o
 E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Infrastructure\obj\Debug\net9.0\Holdings.Infrastructure.pdb
 E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Infrastructure\obj\Debug\net9.0\Holdings.Infrastructure.genruntimeconfig.cache
 E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Infrastructure\obj\Debug\net9.0\ref\Holdings.Infrastructure.dll
+E:\Proyects\C#\InvestmentTracker\src\Services\Holdings\Holdings.Infrastructure\obj\Debug\net9.0\Holdings.Infrastructure.sourcelink.json

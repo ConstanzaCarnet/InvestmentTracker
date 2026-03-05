@@ -12,7 +12,7 @@ public class Transaction
     public TransactionType Type { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastModified { get; set; }
-
+    // control de lectura de los mensajes, asi evitamos que se lean en cualquier orden, y que se procesen mensajes viejos o duplicados
     public long Version { get; set; }
 
 

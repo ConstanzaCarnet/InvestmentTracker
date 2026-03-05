@@ -9,3 +9,4 @@ E:\Proyects\C#\InvestmentTracker\src\BuildingBlocks\EventBus.Messages\obj\Debug\
 E:\Proyects\C#\InvestmentTracker\src\BuildingBlocks\EventBus.Messages\obj\Debug\net9.0\refint\EventBus.Messages.dll
 E:\Proyects\C#\InvestmentTracker\src\BuildingBlocks\EventBus.Messages\obj\Debug\net9.0\EventBus.Messages.pdb
 E:\Proyects\C#\InvestmentTracker\src\BuildingBlocks\EventBus.Messages\obj\Debug\net9.0\ref\EventBus.Messages.dll
+E:\Proyects\C#\InvestmentTracker\src\BuildingBlocks\EventBus.Messages\obj\Debug\net9.0\EventBus.Messages.sourcelink.json

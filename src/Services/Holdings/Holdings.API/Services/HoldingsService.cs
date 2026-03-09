@@ -2,6 +2,7 @@ using Holdings.Application.Interfaces;
 using Holdings.Application.DTOs;
 using Holdings.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Holdings.Domain.Entities;
 
 namespace Holdings.API.Services;
 
@@ -17,23 +18,30 @@ public class HoldingsService : IHoldingsService
 
     public async Task<PortfolioDto> GetPortfolioAsync(Guid userId)
     {
-        var positions = await _context.Positions
-         .Where(p => p.UserId == userId)
-         .ToListAsync();
+        var account = await _context.Accounts
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.UserId == userId);
 
-        var resultPositions = positions.Select(p => new PositionDto
-        {
-            UserId = p.UserId,
-            Ticker = p.Ticker,
-            Quantity = p.Quantity,
-            AveragePrice = p.AveragePurchasePrice
-        }).ToList();
+        var resultPositions = await _context.Positions
+            .Where(p => p.UserId == userId)
+            .AsNoTracking()
+            .Select(p => new PositionDto
+            {
+                UserId = p.UserId,
+                Ticker = p.Ticker,
+                Quantity = p.Quantity,
+                AverageBoughtPrice = p.AverageBoughtPrice,
+                AverageSoldPrice = p.AverageSoldPrice,
+                InvestedAmount = p.InvestedAmount
+            })
+            .ToListAsync();
 
         return new PortfolioDto
         {
             UserId = userId,
+            AccountNumber = account?.AccountId.ToString() ?? string.Empty,
             Positions = resultPositions,
-            TotalAssetsValue = resultPositions.Sum(p => p.Quantity * p.AveragePrice)
+            TotalInvestedAmount = resultPositions.Sum(p => p.InvestedAmount)
         };
     }
 

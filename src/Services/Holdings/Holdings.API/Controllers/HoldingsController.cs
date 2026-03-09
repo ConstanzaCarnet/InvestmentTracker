@@ -20,4 +20,5 @@ public class HoldingsController : ControllerBase
         var portfolio = await _service.GetPortfolioAsync(userId);
         return Ok(portfolio);
     }
+    
 }

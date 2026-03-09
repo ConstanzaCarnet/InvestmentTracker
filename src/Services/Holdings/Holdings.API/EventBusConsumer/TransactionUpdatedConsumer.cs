@@ -1,6 +1,8 @@
 ﻿using EventBus.Messages.Events;
 using Holdings.Application.Interfaces;
 using Holdings.Domain.Entities;
+using Holdings.Infrastructure.Data;
+using Holdings.Application.Helpers;
 using MassTransit;
 
 namespace Holdings.API.EventBusConsumer;
@@ -24,14 +26,15 @@ public class TransactionUpdatedConsumer : IConsumer<TransactionUpdatedEvent>
     public async Task Consume(ConsumeContext<TransactionUpdatedEvent> context)
     {
         var message = context.Message;
+        
+        var type = TransactionTypeMapper.ToDomain(message.Type);
 
-        await using var dbTransaction =
-            await _context.Database.BeginTransactionAsync(context.CancellationToken);
+        await using var dbTransaction = await _context.Database.BeginTransactionAsync(context.CancellationToken);
 
         try
         {
-            var newTicker = message.Ticker.ToUpper();
-            var oldTicker = message.PreviousTicker.ToUpper();
+            var newTicker = message.Ticker.Trim().ToUpperInvariant();
+            var oldTicker = message.PreviousTicker.Trim().ToUpperInvariant();
             //revisamos si el ticker cambió para saber si debemos revertir en la misma posición o en otra
             var tickerChanged = !string.Equals(newTicker, oldTicker, StringComparison.OrdinalIgnoreCase);
 
@@ -43,7 +46,7 @@ public class TransactionUpdatedConsumer : IConsumer<TransactionUpdatedEvent>
                 oldPosition.Revert(
                     message.PreviousQuantity,
                     message.PreviousPrice,
-                    message.PreviousType);
+                    type);
 
                 if (oldPosition.Quantity <= 0)
                     _repository.RemovePosition(oldPosition);
@@ -74,6 +77,7 @@ public class TransactionUpdatedConsumer : IConsumer<TransactionUpdatedEvent>
             {
                 var shouldDelete = position.Sell(
                     message.Quantity,
+                    message.Price,
                     message.SequenceNumber,
                     message.CreatedAt);
 
@@ -83,13 +87,13 @@ public class TransactionUpdatedConsumer : IConsumer<TransactionUpdatedEvent>
                     _repository.UpdatePosition(position);
             }
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(context.CancellationToken);
 
-            await dbTransaction.CommitAsync();
+            await dbTransaction.CommitAsync(context.CancellationToken);
         }
         catch (Exception ex)
         {
-            await dbTransaction.RollbackAsync();
+            await dbTransaction.RollbackAsync(context.CancellationToken);
 
             _logger.LogError(ex, "Error processing TransactionUpdatedEvent");
 

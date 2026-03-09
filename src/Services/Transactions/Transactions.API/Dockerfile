@@ -17,10 +17,10 @@ COPY ["src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj", "Building
 
 RUN dotnet restore "Services/Transactions/Transactions.API/Transactions.API.csproj"
 
-COPY . .
+COPY src src
 
 # Build
-WORKDIR "/src/src/Services/Transactions/Transactions.API"
+WORKDIR "/src/Services/Transactions/Transactions.API"
 RUN dotnet build "Transactions.API.csproj" -c Release -o /app/build
 
 # 3. Publish

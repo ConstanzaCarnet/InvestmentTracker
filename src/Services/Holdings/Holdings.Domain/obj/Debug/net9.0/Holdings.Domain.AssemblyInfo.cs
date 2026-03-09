@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Holdings.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3d14ab2d4157151a6999ecb31f2118cb9de0c616")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a7fd48ff2131d8596a47701f208ce8a70c67d8ba")]
 [assembly: System.Reflection.AssemblyProductAttribute("Holdings.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Holdings.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

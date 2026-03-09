@@ -1,101 +1,134 @@
 version: '3.8'
-
+# con dotnet watch run, estamos aplicando tecnica hot reload, lo que significa que cada vez que hagamos un cambio en el codigo, el contenedor se reiniciara automaticamente y aplicara los cambios sin necesidad de reconstruir la imagen, esto es muy util para el desarrollo, pero no es recomendable para produccion, ya que puede generar problemas de rendimiento y estabilidad.
 services:
-  # 1. Base de datos
+
+  # -----------------------------
+  # SQL SERVER
+  # -----------------------------
   users-db:
     container_name: investment-tracker-sql-db
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=WalletPassword123!
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "WalletPassword123!"
     ports:
       - "1433:1433"
+    volumes:
+      - sql-data:/var/opt/mssql
     networks:
-      - InvestmentTracker-network
+      - investment-network
 
-  # 2. Sistema de mensajería (RabbitMQ)
+  # -----------------------------
+  # RABBITMQ
+  # -----------------------------
   rabbitmq:
     container_name: rabbitmq-invest-tracker
     image: rabbitmq:3-management
     ports:
-      - "5672:5672"   # Puerto de datos (MassTransit lo usa)
-      - "15672:15672" # Puerto del panel visual (guest/guest)
+      - "5672:5672"
+      - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: "guest"
-      RABBITMQ_DEFAULT_PASS: "guest"
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
     networks:
-      - InvestmentTracker-network
+      - investment-network
 
-  # 3. Microservicio UserService
+  # -----------------------------
+  # USERS SERVICE
+  # -----------------------------
   users-service:
     container_name: users-service
-    build:
-      context: .
-      dockerfile: src/Services/Users/Users.API/Dockerfile
+    image: mcr.microsoft.com/dotnet/sdk:9.0
     ports:
-        - "8080:8080"
+      - "8080:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ConnectionStrings__DefaultConnection=Server=users-db;Database=UsersDb;User Id=sa;Password=WalletPassword123!;TrustServerCertificate=True;
-      - EventBusSettings__HostAddress=rabbitmq://rabbitmq # Nombre del servicio de arriba
-    restart: on-failure # Agrega esto para que se recupere solo
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+      ConnectionStrings__DefaultConnection: Server=users-db;Database=UsersDb;User Id=sa;Password=WalletPassword123!;TrustServerCertificate=True;
+      EventBusSettings__HostAddress: rabbitmq://rabbitmq
+    volumes:
+      - .:/src
+    working_dir: /src/src/Services/Users/Users.API
+    command: dotnet watch run --urls=http://0.0.0.0:8080
     depends_on:
       - rabbitmq
       - users-db
     networks:
-      - InvestmentTracker-network
+      - investment-network
 
-   # 4. Microservicio Holdings (Antes Portfolio - Calcula el estado actual)
+  # -----------------------------
+  # HOLDINGS SERVICE
+  # -----------------------------
   holdings-service:
     container_name: holdings-service
-    build:
-      context: .
-      dockerfile: src/Services/Holdings/Holdings.API/Dockerfile
+    image: mcr.microsoft.com/dotnet/sdk:9.0
     ports:
       - "8081:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ConnectionStrings__DefaultConnection=Server=users-db;Database=HoldingsDb;User Id=sa;Password=WalletPassword123!;TrustServerCertificate=True;
-      - EventBusSettings__HostAddress=rabbitmq://rabbitmq
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+      ConnectionStrings__DefaultConnection: Server=users-db;Database=HoldingsDb;User Id=sa;Password=WalletPassword123!;TrustServerCertificate=True;
+      EventBusSettings__HostAddress: rabbitmq://rabbitmq
+    volumes:
+      - .:/src
+    working_dir: /src/src/Services/Holdings/Holdings.API
+    command: dotnet watch run --urls=http://0.0.0.0:8080
     depends_on:
       - rabbitmq
       - users-db
     networks:
-      - InvestmentTracker-network
+      - investment-network
 
-  # 5. Microservicio MarketData
+  # -----------------------------
+  # TRANSACTIONS SERVICE
+  # -----------------------------
+  transactions-service:
+    container_name: transactions-service
+    image: mcr.microsoft.com/dotnet/sdk:9.0
+    ports:
+      - "8083:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+      ConnectionStrings__TransactionConnectionString: Server=users-db;Database=TransactionDb;User Id=sa;Password=WalletPassword123!;TrustServerCertificate=True;
+      EventBusSettings__HostAddress: rabbitmq://rabbitmq
+    volumes:
+      - .:/src
+    working_dir: /src/src/Services/Transactions/Transactions.API
+    command: dotnet watch run --urls=http://0.0.0.0:8080
+    depends_on:
+      - rabbitmq
+      - users-db
+    networks:
+      - investment-network
+
+  # -----------------------------
+  # MARKET DATA SERVICE
+  # -----------------------------
   marketdata-service:
     container_name: marketdata-service
-    build:
-        context: .
-        dockerfile: src/Services/MarketData/MarketData.API/Dockerfile
+    image: mcr.microsoft.com/dotnet/sdk:9.0
     ports:
-        - "8082:8080" # Usamos el puerto 8082 para no chocar con los otros
-    restart: on-failure
-    networks:
-        - InvestmentTracker-network
-
-   # 6. Microservicio Transaction
-  transactions-service:
-    image: ${DOCKER_REGISTRY-}transactions-service
-    container_name: transactions-service
-    build:
-        context: .
-        dockerfile: src/Services/Transactions/Transactions.API/Dockerfile
-    ports:
-        - "8083:8080"
+      - "8082:8080"
     environment:
-        - ASPNETCORE_ENVIRONMENT=Development
-        - ASPNETCORE_HTTP_PORTS=8080
-        - ConnectionStrings__TransactionConnectionString=Server=users-db;Database=TransactionDb;User Id=sa;Password=WalletPassword123!;TrustServerCertificate=True;
-        - EventBusSettings__HostAddress=rabbitmq://rabbitmq
-    depends_on:
-      - rabbitmq
-      - users-db
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+    volumes:
+      - .:/src
+    working_dir: /src/src/Services/MarketData/MarketData.API
+    command: dotnet watch run --urls=http://0.0.0.0:8080
     networks:
-      - InvestmentTracker-network
+      - investment-network
+
+# -----------------------------
+# NETWORK
+# -----------------------------
 networks:
-  InvestmentTracker-network: # La "tubería" invisible que los une a todos
+  investment-network:
     driver: bridge
+
+# -----------------------------
+# VOLUME
+# -----------------------------
+volumes:
+  sql-data:

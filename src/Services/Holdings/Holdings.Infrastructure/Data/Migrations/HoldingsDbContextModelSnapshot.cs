@@ -28,6 +28,10 @@ namespace Holdings.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("AccountNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal>("CashBalance")
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
@@ -49,7 +53,7 @@ namespace Holdings.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<decimal>("AveragePurchasePrice")
+                    b.Property<decimal>("InvestedAmount")
                         .HasPrecision(18, 4)
                         .HasColumnType("decimal(18,4)");
 
@@ -66,6 +70,22 @@ namespace Holdings.Infrastructure.Data.Migrations
                     b.Property<string>("Ticker")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<decimal>("TotalBoughtAmount")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal>("TotalBoughtQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal>("TotalSoldAmount")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal>("TotalSoldQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");

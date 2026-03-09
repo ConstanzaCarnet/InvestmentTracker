@@ -1,8 +1,8 @@
-﻿# Wallet App v1 — Investment & Portfolio Platform
+﻿# InvestmentTracker v1 — Investment & Portfolio Platform
 
 ## 1. Descripción General
 
-**Wallet App v1** es una plataforma de inversiones basada en arquitectura de microservicios.
+**InvestmentTracker v1** es una plataforma de inversiones basada en arquitectura de microservicios.
 El sistema permite registrar usuarios, operar activos financieros (acciones, bonos, oro, etc.), mantener el historial de transacciones y calcular el estado actual de la cartera de inversiones en tiempo real.
 
 El objetivo principal del proyecto es simular una arquitectura similar a la utilizada por plataformas fintech o brokers, priorizando:
@@ -30,7 +30,7 @@ InvestmentTracker/
 │   ├── ApiGateways/
 │   └── BuildingBlocks/
 ├── docker-compose.yml
-└── WalletSolution.sln
+└── InvestmentTracker.sln
 ```
 
 ### Descripción
@@ -482,3 +482,74 @@ El objetivo es construir una simulación realista de una plataforma de inversion
 La documentación completa de arquitectura se encuentra en:
 
 `/ARCHITECTURE.md`
+
+
+
+Aggregator Service----> utilizado en MarketData para agregar precios de diferentes fuentes externas y exponer un endpoint unificado.
+Un Aggregator Service es un servicio cuya única responsabilidad es:
+combinar datos de varios microservicios para producir una respuesta compuesta.
+¿Aggregator es lo mismo que API Gateway? No, un API Gateway es un punto de entrada unificado para toda la plataforma, mientras que un Aggregator Service se enfoca en combinar datos específicos de ciertos servicios para una funcionalidad concreta.
+Especialmente, Aggregator si posee lógica de negocio (ej: cálculos, transformaciones) mientras que API Gateway solo enruta y delega.
+En nuestro sistema quedaría algo así:
+
+Client
+  ↓
+API Gateway
+  ↓
+Transactions Service
+Holdings Service
+MarketData Service
+Portfolio Service
+
+DIFERENCIAS CLAVE:
+| API Gateway       | Aggregator           |
+| ----------------- | -------------------- |
+| Routing           | composición de datos |
+| Infraestructura   | lógica de dominio    |
+| No calcula        | sí calcula           |
+| No conoce negocio | conoce el modelo     |
+
+
+
+Arquitectura final (muy realista)
+
+Tu sistema podría verse así:
+
+Transactions Service
+   source of truth
+   currency
+   exchangeRate
+
+RabbitMQ
+
+Holdings Service
+   positions projection
+
+MarketData Service
+   prices
+   FX rates
+
+Basics Service
+   instruments
+   ratios
+   metadata
+
+Portfolio Aggregator
+   portfolio view
+
+
+
+  ////// Sobre el microservicio "Basics"
+La idea del cliente también es buena.
+
+Un servicio así contendría:
+Stocks
+Bonds
+Funds (FCI)
+
+Información típica:
+ticker
+name
+type
+ratio
+currency

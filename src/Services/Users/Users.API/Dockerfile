@@ -17,7 +17,7 @@ COPY ["src/Services/Users/Users.Infrastructure/Users.Infrastructure.csproj", "Se
 COPY ["src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj", "BuildingBlocks/EventBus.Messages/"]
 # Restauramos las dependencias desde API ya que tiene referencias a los otros proyectos
 RUN dotnet restore "Services/Users/Users.API/Users.API.csproj"
-COPY . .
+COPY src src
 WORKDIR "src/Services/Users/Users.API"
 RUN dotnet build "Users.API.csproj" -c Release -o /app/build
 

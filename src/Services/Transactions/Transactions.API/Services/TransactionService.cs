@@ -10,6 +10,7 @@ using System.Text.Json;
 using Transactions.Infrastructure.Outbox;
 
 using DomainTransactionType = Transactions.Domain.Enums.TransactionType;
+using DomainCurrencyType = Transactions.Domain.Enums.Currency;
 using EventTransactionType = EventBus.Messages.Events.TransactionType;
 
 namespace Transactions.API.Services;
@@ -30,13 +31,18 @@ public class TransactionService : ITransactionService
         _logger = logger;
     }
 
-    private static EventTransactionType MapToEventType(DomainTransactionType type)
+    private static EventBus.Messages.Events.TransactionType MapToEventType(
+    Transactions.Domain.Enums.TransactionType type)
     {
         return type switch
         {
-            DomainTransactionType.BUY => EventTransactionType.BUY,
-            DomainTransactionType.SELL => EventTransactionType.SELL,
-            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            Transactions.Domain.Enums.TransactionType.BUY =>
+                EventBus.Messages.Events.TransactionType.BUY,
+
+            Transactions.Domain.Enums.TransactionType.SELL =>
+                EventBus.Messages.Events.TransactionType.SELL,
+
+            _ => throw new ArgumentOutOfRangeException(nameof(type))
         };
     }
 
@@ -47,6 +53,8 @@ public class TransactionService : ITransactionService
             request.Ticker,
             request.Quantity,
             request.Price,
+            request.Currency,
+            request.ExchangeRate,
             DomainTransactionType.BUY);
     }
 
@@ -57,10 +65,12 @@ public class TransactionService : ITransactionService
             request.Ticker,
             request.Quantity,
             request.Price,
+            request.Currency,
+            request.ExchangeRate,
             DomainTransactionType.SELL);
     }
 
-    private async Task<TransactionDto> CreateTransactionInternalAsync(Guid userId, string ticker, decimal quantity, decimal price, DomainTransactionType type)
+    private async Task<TransactionDto> CreateTransactionInternalAsync(Guid userId, string ticker, decimal quantity, decimal price, DomainCurrencyType currency, decimal exchangeRate, DomainTransactionType type)
     {
         // inicio una transacción de base de datos para asegurar atomicidad entre la creación de la transacción y el evento de integración
         //no es lo mismo que _context.Database.BeginTransaction() que es sincrono, este es asincrono y se adapta mejor a la naturaleza async de nuestro servicio
@@ -85,6 +95,8 @@ public class TransactionService : ITransactionService
                 ticker.ToUpper(),
                 quantity,
                 price,
+                currency,
+                exchangeRate,
                 type,
                 nextVersion
             );
@@ -101,6 +113,8 @@ public class TransactionService : ITransactionService
                 Ticker = transaction.Ticker,
                 Quantity = transaction.Quantity,
                 Price = transaction.Price,
+                Currency = transaction.Currency.ToString(),
+                ExchangeRate = transaction.ExchangeRate,
                 Type = MapToEventType(transaction.Type),
                 CreatedAt = transaction.CreatedAt,
                 SequenceNumber = transaction.Version
@@ -119,14 +133,15 @@ public class TransactionService : ITransactionService
             // 1) la transacción, es decir, el nuevo estado del ledger
             // 2) el evento, que luego será publicado por el proceso de outbox
             await dbTransaction.CommitAsync();
-            
+
             // 6. mapear a DTO y retornar
             return new TransactionDto(
                 transaction.Id,
                 transaction.Ticker,
                 transaction.Quantity,
                 transaction.Price,
-                transaction.Quantity * transaction.Price,
+                transaction.ExchangeRate,
+                transaction.Currency.ToString(),
                 transaction.CreatedAt,
                 transaction.Type.ToString()
             );
@@ -148,7 +163,8 @@ public class TransactionService : ITransactionService
             t.Ticker,
             t.Quantity,
             t.Price,
-            t.Quantity * t.Price,
+            t.ExchangeRate,
+            t.Currency.ToString(),
             t.CreatedAt,
             t.Type.ToString()
         ));
@@ -173,7 +189,8 @@ public class TransactionService : ITransactionService
             t.Ticker,
             t.Quantity,
             t.Price,
-            t.Quantity * t.Price,
+            t.ExchangeRate,
+            t.Currency.ToString(),
             t.CreatedAt,
             t.Type.ToString()
         );
@@ -197,13 +214,7 @@ public class TransactionService : ITransactionService
         transaction.Quantity = request.Quantity;
         transaction.Price = request.Price;
         transaction.CreatedAt = request.Date;
-        transaction.Type = request.Type switch
-        {
-            EventTransactionType.BUY => DomainTransactionType.BUY,
-            EventTransactionType.SELL => DomainTransactionType.SELL,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-
+        transaction.Type = (DomainTransactionType)request.Type;
         transaction.LastModified = DateTime.UtcNow;
 
         // ⚠ importante
@@ -227,6 +238,7 @@ public class TransactionService : ITransactionService
                 PreviousTicker = oldTicker,
                 PreviousQuantity = oldQuantity,
                 PreviousPrice = oldPrice,
+                PreviousCurrency = transaction.Currency.ToString(),
                 PreviousType = MapToEventType(oldType),
 
                 SequenceNumber = transaction.Version
@@ -275,6 +287,8 @@ public class TransactionService : ITransactionService
                 Ticker = transaction.Ticker,
                 Quantity = transaction.Quantity,
                 Price = transaction.Price,
+                Currency = transaction.Currency.ToString(),
+                ExchangeRate = transaction.ExchangeRate,
                 Type = MapToEventType(transaction.Type),
                 CreatedAt = DateTime.UtcNow,
                 SequenceNumber = transaction.Version + 1

@@ -1,6 +1,8 @@
 using EventBus.Messages.Events;
 using Holdings.Application.Interfaces;
 using Holdings.Domain.Entities;
+using Holdings.Infrastructure.Data;
+using Holdings.Application.Helpers;
 using MassTransit;
 
 namespace Holdings.API.EventBusConsumer;
@@ -25,12 +27,12 @@ public class TransactionDeletedConsumer : IConsumer<TransactionDeletedEvent>
     {
         var message = context.Message;
 
-        await using var dbTransaction =
-            await _context.Database.BeginTransactionAsync(context.CancellationToken);
+        await using var dbTransaction = await _context.Database.BeginTransactionAsync(context.CancellationToken);
 
         try
         {
-            var ticker = message.Ticker.ToUpper();
+            var ticker = message.Ticker.Trim().ToUpperInvariant();
+            var type = TransactionTypeMapper.ToDomain(message.Type);
 
             var position = await _repository.GetPositionAsync(message.UserId, ticker);
 
@@ -38,7 +40,8 @@ public class TransactionDeletedConsumer : IConsumer<TransactionDeletedEvent>
             {
                 _logger.LogWarning(
                     "Delete event but no position found User={User} Ticker={Ticker}",
-                    message.UserId, ticker);
+                    message.UserId,
+                    ticker);
                 return;
             }
 
@@ -46,19 +49,19 @@ public class TransactionDeletedConsumer : IConsumer<TransactionDeletedEvent>
             position.Revert(
                 message.Quantity,
                 message.Price,
-                message.Type);
+                type);
 
             if (position.Quantity == 0)
                 _repository.RemovePosition(position);
             else
                 _repository.UpdatePosition(position);
 
-            await _context.SaveChangesAsync();
-            await dbTransaction.CommitAsync();
+            await _context.SaveChangesAsync(context.CancellationToken);
+            await dbTransaction.CommitAsync(context.CancellationToken);
         }
         catch
         {
-            await dbTransaction.RollbackAsync();
+            await dbTransaction.RollbackAsync(context.CancellationToken);
             throw;
         }
     }

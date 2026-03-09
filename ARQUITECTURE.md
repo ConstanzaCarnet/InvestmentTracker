@@ -1,4 +1,4 @@
-﻿# Arquitectura — Wallet App v1
+﻿# Arquitectura — InvestmentTracker v1
 
 ## Objetivo
 

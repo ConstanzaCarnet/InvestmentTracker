@@ -8,24 +8,24 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Copiar csproj (para cache de restore)
-COPY src/Services/MarketData/MarketData.API/MarketData.API.csproj ./Services/MarketData/MarketData.API/
-COPY src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj ./BuildingBlocks/EventBus.Messages/
+COPY "src/Services/MarketData/MarketData.API/MarketData.API.csproj ./Services/MarketData/MarketData.API/""
+COPY "src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj ./BuildingBlocks/EventBus.Messages/"
 
 # RESTORE (AHORA LA RUTA ES LA DEL CONTENEDOR)
-RUN dotnet restore ./Services/MarketData/MarketData.API/MarketData.API.csproj
+RUN dotnet restore "./Services/MarketData/MarketData.API/MarketData.API.csproj"
 
 # Copiar todo el repo
-COPY . .
+COPY src src
 
 # Ir al proyecto real
-WORKDIR /src/src/Services/MarketData/MarketData.API
+WORKDIR "/src/Services/MarketData/MarketData.API"
 
 # Build
-RUN dotnet build MarketData.API.csproj -c Release -o /app/build
+RUN dotnet build "MarketData.API.csproj" -c Release -o /app/build
 
 # Publish
 FROM build AS publish
-RUN dotnet publish MarketData.API.csproj -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "MarketData.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Final
 FROM base AS final

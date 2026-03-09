@@ -19,7 +19,7 @@ COPY ["src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj", "src/Buil
 RUN dotnet restore "src/Services/Holdings/Holdings.API/Holdings.API.csproj"
 
 # Copiamos todo el resto del código
-COPY . .
+COPY src src
 
 # Cambiamos al directorio de la API para buildear
 WORKDIR "src/Services/Holdings/Holdings.API"

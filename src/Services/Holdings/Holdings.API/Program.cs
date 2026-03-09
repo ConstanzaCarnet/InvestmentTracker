@@ -43,6 +43,7 @@ builder.Services.AddMassTransit(config =>
     config.AddConsumer<TransactionCreatedConsumer>();
     config.AddConsumer<TransactionUpdatedConsumer>();
     config.AddConsumer<TransactionDeletedConsumer>();
+    config.AddConsumer<UserCreatedConsumer>();
 
     config.UsingRabbitMq((ctx, cfg) =>
     {

@@ -510,46 +510,51 @@ DIFERENCIAS CLAVE:
 | No conoce negocio | conoce el modelo     |
 
 
+//Nuevo elemento PositionLot---> Dentro de Position, se introduce el concepto de "Lot" para manejar compras y ventas de activos de manera más granular. Un Lot representa una cantidad específica de un activo adquirida en una transacción particular.
+Dentro de Consumer de Holdings, al procesar un evento de compra o venta, se sigue la siguiente lógica:
+1. Validar secuencia (Position)
+2. Buscar/crear Lot (por currency)
+3. Aplicar lógica (Lot)
+4. Si queda vacío → eliminar Lot
 
-Arquitectura final (muy realista)
+¿Qué es PortfolioService?
+👉 Un servicio que te devuelve esto:
 
-Tu sistema podría verse así:
+Portfolio
+ ├── Positions
+ │    ├── SPY
+ │    │    ├── TotalValue
+ │    │    ├── PnL
+ │    │    ├── % del portfolio
+ │    │    └── Breakdown por moneda (USD / ARS)
+ │
+ └── TotalPortfolioValue
+ 
+ Será una vista global del estado actual de la cartera, combinando datos de Holdings y MarketData.
 
-Transactions Service
-   source of truth
-   currency
-   exchangeRate
-
-RabbitMQ
-
-Holdings Service
-   positions projection
-
-MarketData Service
-   prices
-   FX rates
-
-Basics Service
-   instruments
-   ratios
-   metadata
-
-Portfolio Aggregator
-   portfolio view
-
+ ✔ Portfolio → usa Ticker para precios
+✔ MarketData → NO conoce InstrumentId
+✔ Batch → optimización (podés hacerlo simple ahora)
 
 
-  ////// Sobre el microservicio "Basics"
-La idea del cliente también es buena.
+PortfolioService
+     ↓
+IMarketDataClient (HTTP)
+     ↓
+MarketData API (microservicio)
+     ↓
+Proveedor externo (o fake por ahora)
 
-Un servicio así contendría:
-Stocks
-Bonds
-Funds (FCI)
 
-Información típica:
-ticker
-name
-type
-ratio
-currency
+
+Diseño correcto (IMPORTANTE)
+
+Controller
+   ↓
+PriceService  ← 🔥 ORQUESTADOR
+   ↓
+IPriceService (cache)
+   ↓
+IPriceProvider (Finnhub, Yahoo, etc)
+   ↓
+HTTP externo

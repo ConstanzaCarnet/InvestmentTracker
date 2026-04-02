@@ -1,26 +1,39 @@
 namespace Holdings.Application.DTOs;
 public class PositionDto
 {
-    public string Ticker { get; set; } = string.Empty;
-    public Guid UserId { get; set; }
-    public decimal Quantity { get; set; }
-    public decimal AverageSoldPrice { get; set; }
-    public decimal AverageBoughtPrice { get; set; }
-    public decimal InvestedAmount { get; set; } // Total invertido menos lo vendido, para calcular la ganancia o pérdida
-    //public decimal Subtotal => Quantity * AveragePrice; // Valor de la tenencia al precio de compra
-    //public string AssetType { get; set; } = string.Empty; // "Stock", "Bond", etc.
+    public Guid InstrumentId { get; set; }
+    public string Ticker { get; set; } = null!;
+
+    public decimal TotalQuantity { get; set; }
+    public decimal TotalRealQuantity { get; set; }
+
+    public decimal TotalInvested { get; set; }
+    public decimal CurrentPrice { get; set; }
+    public decimal CurrentValue { get; set; }
+
+    public decimal PnL { get; set; }
+    public decimal PnLPercentage { get; set; }
+
+    public decimal PortfolioPercentage { get; set; }
+
+    public List<PositionLotDto> Lots { get; set; } = new();
 
     //constructor
     public PositionDto() { }
 
     //constructor con parámetros
-    public PositionDto(Guid userId, string ticker, decimal quantity, decimal averageBoughtPrice, decimal averageSoldPrice, decimal investedAmount)
+    public PositionDto( Guid instrumentId, string ticker, decimal totalQuantity, decimal totalRealQuantity, decimal totalInvested, decimal currentPrice, decimal currentValue, decimal pnl, decimal pnlPercentage, decimal portfolioPercentage, List<PositionLotDto> lots)
     {
-        UserId = userId;
+        InstrumentId = instrumentId;
         Ticker = ticker;
-        Quantity = quantity;
-        AverageBoughtPrice = averageBoughtPrice;
-        AverageSoldPrice = averageSoldPrice;
-        InvestedAmount = investedAmount;
+        TotalQuantity = totalQuantity;
+        TotalRealQuantity = totalRealQuantity;
+        TotalInvested = totalInvested;
+        CurrentPrice = currentPrice;
+        CurrentValue = currentValue;
+        PnL = pnl;
+        PnLPercentage = pnlPercentage;
+        PortfolioPercentage = portfolioPercentage;
+        Lots = lots;
     }
 }

@@ -11,5 +11,7 @@ public class OutboxMessage
 
     public DateTime? ProcessedOnUtc { get; set; }
 
+    public Guid IdempotencyKey { get; set; }
+
     public string? Error { get; set; }
 }

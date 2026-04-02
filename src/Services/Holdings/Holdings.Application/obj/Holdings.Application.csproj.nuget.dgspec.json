@@ -1,32 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "E:\\Proyects\\C#\\InvestmentTracker\\src\\Services\\Holdings\\Holdings.Application\\Holdings.Application.csproj": {}
+    "/src/src/Services/Holdings/Holdings.Application/Holdings.Application.csproj": {}
   },
   "projects": {
-    "E:\\Proyects\\C#\\InvestmentTracker\\src\\BuildingBlocks\\EventBus.Messages\\EventBus.Messages.csproj": {
+    "/src/src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Proyects\\C#\\InvestmentTracker\\src\\BuildingBlocks\\EventBus.Messages\\EventBus.Messages.csproj",
+        "projectUniqueName": "/src/src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj",
         "projectName": "EventBus.Messages",
-        "projectPath": "E:\\Proyects\\C#\\InvestmentTracker\\src\\BuildingBlocks\\EventBus.Messages\\EventBus.Messages.csproj",
-        "packagesPath": "C:\\Users\\carne\\.nuget\\packages\\",
-        "outputPath": "E:\\Proyects\\C#\\InvestmentTracker\\src\\BuildingBlocks\\EventBus.Messages\\obj\\",
+        "projectPath": "/src/src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj",
+        "packagesPath": "/root/.nuget/packages/",
+        "outputPath": "/src/src/BuildingBlocks/EventBus.Messages/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\carne\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/root/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -66,44 +59,37 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.311/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "E:\\Proyects\\C#\\InvestmentTracker\\src\\Services\\Holdings\\Holdings.Application\\Holdings.Application.csproj": {
+    "/src/src/Services/Holdings/Holdings.Application/Holdings.Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Proyects\\C#\\InvestmentTracker\\src\\Services\\Holdings\\Holdings.Application\\Holdings.Application.csproj",
+        "projectUniqueName": "/src/src/Services/Holdings/Holdings.Application/Holdings.Application.csproj",
         "projectName": "Holdings.Application",
-        "projectPath": "E:\\Proyects\\C#\\InvestmentTracker\\src\\Services\\Holdings\\Holdings.Application\\Holdings.Application.csproj",
-        "packagesPath": "C:\\Users\\carne\\.nuget\\packages\\",
-        "outputPath": "E:\\Proyects\\C#\\InvestmentTracker\\src\\Services\\Holdings\\Holdings.Application\\obj\\",
+        "projectPath": "/src/src/Services/Holdings/Holdings.Application/Holdings.Application.csproj",
+        "packagesPath": "/root/.nuget/packages/",
+        "outputPath": "/src/src/Services/Holdings/Holdings.Application/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\carne\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/root/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "E:\\Proyects\\C#\\InvestmentTracker\\src\\BuildingBlocks\\EventBus.Messages\\EventBus.Messages.csproj": {
-                "projectPath": "E:\\Proyects\\C#\\InvestmentTracker\\src\\BuildingBlocks\\EventBus.Messages\\EventBus.Messages.csproj"
+              "/src/src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj": {
+                "projectPath": "/src/src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj"
               },
-              "E:\\Proyects\\C#\\InvestmentTracker\\src\\Services\\Holdings\\Holdings.Domain\\Holdings.Domain.csproj": {
-                "projectPath": "E:\\Proyects\\C#\\InvestmentTracker\\src\\Services\\Holdings\\Holdings.Domain\\Holdings.Domain.csproj"
+              "/src/src/Services/Holdings/Holdings.Domain/Holdings.Domain.csproj": {
+                "projectPath": "/src/src/Services/Holdings/Holdings.Domain/Holdings.Domain.csproj"
               }
             }
           }
@@ -139,39 +125,36 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.311/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "E:\\Proyects\\C#\\InvestmentTracker\\src\\Services\\Holdings\\Holdings.Domain\\Holdings.Domain.csproj": {
+    "/src/src/Services/Holdings/Holdings.Domain/Holdings.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Proyects\\C#\\InvestmentTracker\\src\\Services\\Holdings\\Holdings.Domain\\Holdings.Domain.csproj",
+        "projectUniqueName": "/src/src/Services/Holdings/Holdings.Domain/Holdings.Domain.csproj",
         "projectName": "Holdings.Domain",
-        "projectPath": "E:\\Proyects\\C#\\InvestmentTracker\\src\\Services\\Holdings\\Holdings.Domain\\Holdings.Domain.csproj",
-        "packagesPath": "C:\\Users\\carne\\.nuget\\packages\\",
-        "outputPath": "E:\\Proyects\\C#\\InvestmentTracker\\src\\Services\\Holdings\\Holdings.Domain\\obj\\",
+        "projectPath": "/src/src/Services/Holdings/Holdings.Domain/Holdings.Domain.csproj",
+        "packagesPath": "/root/.nuget/packages/",
+        "outputPath": "/src/src/Services/Holdings/Holdings.Domain/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\carne\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/root/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net9.0": {
             "targetAlias": "net9.0",
-            "projectReferences": {}
+            "projectReferences": {
+              "/src/src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj": {
+                "projectPath": "/src/src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj"
+              }
+            }
           }
         },
         "warningProperties": {
@@ -221,7 +204,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.311/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

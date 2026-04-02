@@ -2,6 +2,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Users.Domain\Users.Domain.csproj" />
+	<PackageReference Include="MassTransit" Version="8.3.0" />
+	<PackageReference Include="MassTransit.RabbitMQ" Version="8.3.0" />
+	<ProjectReference Include="..\..\..\BuildingBlocks\EventBus.Messages\EventBus.Messages.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

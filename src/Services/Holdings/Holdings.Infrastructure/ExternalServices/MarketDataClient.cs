@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using Microsoft.Extensions.Logging;
 using Holdings.Application.Interfaces;
 using Holdings.Infrastructure.ExternalServices.Models; 
+using Holdings.Application.DTOs;
 
 namespace Holdings.Infrastructure.ExternalServices;
 
@@ -16,14 +17,23 @@ public class MarketDataClient : IMarketDataClient
         _logger = logger;
     }
 
-    public async Task<decimal> GetPriceAsync(string ticker)
+    public async Task<Dictionary<Guid, decimal>> GetPricesAsync(List<Guid> instrumentIds)
     {
-        var response = await _httpClient.GetFromJsonAsync<MarketPriceDto>(
-            $"api/marketdata/{ticker}");
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync(
+                "api/v1/prices/batch",
+                new { instrumentIds });
 
-        if (response == null)
-            throw new Exception("No se pudo obtener el precio del activo");
+            response.EnsureSuccessStatusCode();
 
-        return response.Price;
+            var result = await response.Content.ReadFromJsonAsync<BatchPriceResponse>();
+
+            return result!.Prices.ToDictionary(p => p.InstrumentId, p => p.Price);
+        }
+        catch
+        {
+            return instrumentIds.ToDictionary(i => i, i => 0m);
+        }
     }
 }

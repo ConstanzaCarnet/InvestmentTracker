@@ -10,6 +10,9 @@ using Holdings.Infrastructure.Data;
 using Holdings.Infrastructure.Services;
 using Holdings.Application.Interfaces;
 using Holdings.API.Services;
+using Polly;
+using Polly.Extensions.Http;
+using Holdings.Infrastructure.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,13 +28,19 @@ builder.Services.AddDbContext<HoldingsDbContext>(options =>
 builder.Services.AddScoped<IHoldingRepository, HoldingRepository>();
 builder.Services.AddScoped<IHoldingsService, HoldingsService>();
 
+
 // --- 3. CLIENTES HTTP ---
 builder.Services.AddHttpClient<IMarketDataClient, MarketDataClient>(client =>
 {
-    client.BaseAddress = new Uri("http://marketdata-service:8080/");
+    client.BaseAddress = new Uri(builder.Configuration["Services:MarketData"]!);
+})
+.AddPolicyHandler(HttpPolicies.GetRetryPolicy())
+.AddPolicyHandler(HttpPolicies.GetTimeoutPolicy());
+/*builder.Services.AddHttpClient<IMarketDataClient, MarketDataClient>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5003/");
 });
-
-// OJO: Aquí tenías AddScoped de IHoldingsService duplicado, lo limpié.
+*/
 
 // --- 4. MASSTRANSIT / RABBITMQ ---
 var eventBusSettings = builder.Configuration.GetSection("EventBusSettings");

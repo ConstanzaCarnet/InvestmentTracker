@@ -1725,10 +1725,23 @@
           }
         }
       },
+      "EventBus.Messages/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "compile": {
+          "bin/placeholder/EventBus.Messages.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/EventBus.Messages.dll": {}
+        }
+      },
       "Users.Application/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
         "dependencies": {
+          "EventBus.Messages": "1.0.0",
+          "MassTransit": "8.3.0",
+          "MassTransit.RabbitMQ": "8.3.0",
           "Users.Domain": "1.0.0"
         },
         "compile": {
@@ -4832,6 +4845,11 @@
         "system.windows.extensions.nuspec",
         "useSharedDesignerContext.txt"
       ]
+    },
+    "EventBus.Messages/1.0.0": {
+      "type": "project",
+      "path": "../../../BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj",
+      "msbuildProject": "../../../BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj"
     },
     "Users.Application/1.0.0": {
       "type": "project",

@@ -40,10 +40,10 @@ public class TransactionController : ControllerBase
     }
 
     //busqueda por ticker segun usuario
-    [HttpGet("user/{userId}/ticker/{ticker}")]
-    public async Task<IActionResult> GetUserTransactionsByTicker(Guid userId, string ticker)
+    [HttpGet("user/{userId}/instrument/{instrumentId}")]
+    public async Task<IActionResult> GetUserTransactionsByTicker(Guid userId, Guid instrumentId)
     {
-        var transactions = await _transactionService.GetTransactionHistoryByTickerAsync(userId, ticker);
+        var transactions = await _transactionService.GetTransactionHistoryByTickerAsync(userId, instrumentId);
         return Ok(transactions);
     }
 

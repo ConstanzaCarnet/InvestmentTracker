@@ -4,6 +4,7 @@ using Users.Domain.Entities;
 using Users.Application.Interfaces;
 using Users.Infrastructure.Data;
 using Users.Infrastructure.Repositories;
+using Users.Application.Services;
 using Users.Infrastructure;
 using MassTransit;
 
@@ -22,6 +23,7 @@ builder.Services.AddSwaggerGen();
 // Registro de Repositorios
 //con AddScoped se crea una instancia por cada petición HTTP
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddControllers();
 // Configuración de MassTransit con RabbitMQ
 builder.Services.AddMassTransit(x =>

@@ -6,14 +6,16 @@ public class Transaction
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
+    public Guid InstrumentId { get; set; }
     public string Ticker { get; set; } = string.Empty;
     public decimal Quantity { get; set; }
     public decimal Price { get; set; }
     public Currency Currency { get; set; }   
     public decimal ExchangeRate { get; set; }
+    public decimal ConversionRatio { get; set ; }
     public TransactionType Type { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? LastModified { get; set; }
+    public DateTime? LastModified { get; set; } = DateTime.UtcNow;
     // control de lectura de los mensajes, asi evitamos que se lean en cualquier orden, y que se procesen mensajes viejos o duplicados
     public long Version { get; set; }
 
@@ -22,18 +24,21 @@ public class Transaction
     public Transaction() { }
 
     // Constructor que usas en el Service
-    public Transaction(Guid userId, string ticker, decimal quantity, decimal price, Currency currency, decimal exchangeRate, TransactionType type, long version)
+    public Transaction(Guid userId, Guid instrumentId, string ticker, decimal quantity, decimal price, Currency currency, decimal exchangeRate, decimal conversionRatio, TransactionType type, long version)
     {
         Id = Guid.NewGuid();
         UserId = userId;
+        InstrumentId = instrumentId;
         Ticker = ticker;
         Quantity = quantity;
         Price = price;
         Currency = currency;
         ExchangeRate = exchangeRate;
+        ConversionRatio = conversionRatio;
         Type = type;
         Version = version;
         CreatedAt = DateTime.UtcNow;
+        LastModified = DateTime.UtcNow;
     }
 }
 

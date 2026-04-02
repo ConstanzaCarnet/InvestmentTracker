@@ -7,9 +7,8 @@ public interface ITransactionService
 {
     Task<TransactionDto> BuyAsync(BuyRequest request);
     Task<TransactionDto> SellAsync(SellRequest request);
-    //Task<TransactionDto> CreateTransactionInternalAsync(Guid userId, string ticker, decimal quantity, decimal price, TransactionType type);
     Task<IEnumerable<TransactionDto>> GetTransactionHistoryAsync(Guid userId);
-    Task<IEnumerable<TransactionDto>> GetTransactionHistoryByTickerAsync(Guid userId, string ticker);
+    Task<IEnumerable<TransactionDto>> GetTransactionHistoryByTickerAsync(Guid userId, Guid instrumentId);
     Task<IEnumerable<TransactionDto>> GetTransactionHistoryByDateAsync(Guid userId, DateTime date);
     Task<(bool Success, string Message)> UpdateTransactionAsync(Guid id, TransactionRequest request);
     Task<(bool Success, string Message)> DeleteTransactionAsync(Guid id);

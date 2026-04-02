@@ -45,7 +45,9 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TransactionDbContext>();
-    db.Database.Migrate();
+
+    await db.Database.MigrateAsync();
+    await InstrumentsSeeder.SeedAsync(db);
 }
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

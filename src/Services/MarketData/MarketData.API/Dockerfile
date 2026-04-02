@@ -8,7 +8,10 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Copiar csproj (para cache de restore)
-COPY "src/Services/MarketData/MarketData.API/MarketData.API.csproj ./Services/MarketData/MarketData.API/""
+COPY "src/Services/MarketData/MarketData.API/MarketData.API.csproj ./Services/MarketData/MarketData.API/"
+COPY "src/Services/MarketData/MarketData.Application/MarketData.Application.csproj ./Services/MarketData/MarketData.Application/"
+COPY "src/Services/MarketData/MarketData.Domain/MarketData.Domain.csproj ./Services/MarketData/MarketData.Domain/"
+COPY "src/Services/MarketData/MarketData.Infrastructure/MarketData.Infrastructure.csproj ./Services/MarketData/MarketData.Infrastructure/"
 COPY "src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj ./BuildingBlocks/EventBus.Messages/"
 
 # RESTORE (AHORA LA RUTA ES LA DEL CONTENEDOR)

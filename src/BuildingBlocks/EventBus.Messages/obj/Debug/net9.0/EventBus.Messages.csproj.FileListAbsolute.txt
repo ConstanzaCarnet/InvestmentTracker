@@ -33,15 +33,3 @@ E:/Proyects/C#/InvestmentTracker/src/BuildingBlocks/EventBus.Messages/obj/Debug/
 /src/src/BuildingBlocks/EventBus.Messages/obj/Debug/net9.0/refint/EventBus.Messages.dll
 /src/src/BuildingBlocks/EventBus.Messages/obj/Debug/net9.0/EventBus.Messages.pdb
 /src/src/BuildingBlocks/EventBus.Messages/obj/Debug/net9.0/ref/EventBus.Messages.dll
-E:\Proyects\C#\InvestmentTracker\src\BuildingBlocks\EventBus.Messages\bin\Debug\net9.0\EventBus.Messages.deps.json
-E:\Proyects\C#\InvestmentTracker\src\BuildingBlocks\EventBus.Messages\bin\Debug\net9.0\EventBus.Messages.dll
-E:\Proyects\C#\InvestmentTracker\src\BuildingBlocks\EventBus.Messages\bin\Debug\net9.0\EventBus.Messages.pdb
-E:\Proyects\C#\InvestmentTracker\src\BuildingBlocks\EventBus.Messages\obj\Debug\net9.0\EventBus.Messages.GeneratedMSBuildEditorConfig.editorconfig
-E:\Proyects\C#\InvestmentTracker\src\BuildingBlocks\EventBus.Messages\obj\Debug\net9.0\EventBus.Messages.AssemblyInfoInputs.cache
-E:\Proyects\C#\InvestmentTracker\src\BuildingBlocks\EventBus.Messages\obj\Debug\net9.0\EventBus.Messages.AssemblyInfo.cs
-E:\Proyects\C#\InvestmentTracker\src\BuildingBlocks\EventBus.Messages\obj\Debug\net9.0\EventBus.Messages.csproj.CoreCompileInputs.cache
-E:\Proyects\C#\InvestmentTracker\src\BuildingBlocks\EventBus.Messages\obj\Debug\net9.0\EventBus.Messages.sourcelink.json
-E:\Proyects\C#\InvestmentTracker\src\BuildingBlocks\EventBus.Messages\obj\Debug\net9.0\EventBus.Messages.dll
-E:\Proyects\C#\InvestmentTracker\src\BuildingBlocks\EventBus.Messages\obj\Debug\net9.0\refint\EventBus.Messages.dll
-E:\Proyects\C#\InvestmentTracker\src\BuildingBlocks\EventBus.Messages\obj\Debug\net9.0\EventBus.Messages.pdb
-E:\Proyects\C#\InvestmentTracker\src\BuildingBlocks\EventBus.Messages\obj\Debug\net9.0\ref\EventBus.Messages.dll

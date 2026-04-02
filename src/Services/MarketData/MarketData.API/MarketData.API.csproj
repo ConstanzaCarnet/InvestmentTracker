@@ -21,4 +21,9 @@
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\MarketData.Application\MarketData.Application.csproj" />
+	  <ProjectReference Include="..\MarketData.Infrastructure\MarketData.Infrastructure.csproj" />
+	</ItemGroup>
 </Project>

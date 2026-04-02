@@ -45,6 +45,17 @@ public class TransactionService : ITransactionService
             _ => throw new ArgumentOutOfRangeException(nameof(type))
         };
     }
+    //validacion del ticker, creo una pequeña funcion para reutilizar, que devuelva el instrumento
+    public async Task<Instrument> ValidateAndGetInstrumentAsync(string ticker)
+    {
+        var instrument = await _context.Instruments
+            .FirstOrDefaultAsync(i => i.Ticker.Trim().ToUpper() == ticker.ToUpper() && i.IsActive);
+        if (instrument == null)
+        {
+            throw new Exception("Ticker inválido o instrumento inactivo");
+        }
+        return instrument;
+    }
 
     public async Task<TransactionDto> BuyAsync(BuyRequest request)
     {
@@ -78,25 +89,31 @@ public class TransactionService : ITransactionService
 
         try
         {
+            //validamos y obtenemos el instrumento, asi tenemos InstrumentId, ya que el Ticker puede haber cambiado
+            var instrument = await ValidateAndGetInstrumentAsync(ticker);
             // 1️. obtener la próxima versión (orden del ledger)
-            long nextVersion = await _repository.GetNextVersionAsync(userId, ticker);
+            long nextVersion = await _repository.GetNextVersionAsync(userId, instrument.Id);
+
             //reviso si es posible crear la transaction o si el balance total no lo permite
             if (type == DomainTransactionType.SELL)
             {
-                var currentPosition = await _repository.GetCurrentPositionAsync(userId, ticker);
+                var currentPosition = await _repository.GetCurrentPositionAsync(userId, instrument.Id);
 
                 if (currentPosition < quantity)
                     throw new InvalidOperationException(
                         $"No tienes suficiente {ticker} para vender. Disponible: {currentPosition}");
             }
+
             // 2️. crear la entidad
             var transaction = new Transaction(
                 userId,
+                instrument.Id,
                 ticker.ToUpper(),
                 quantity,
                 price,
                 currency,
                 exchangeRate,
+                instrument.ConversionRatio,
                 type,
                 nextVersion
             );
@@ -110,20 +127,24 @@ public class TransactionService : ITransactionService
             {
                 Id = transaction.Id,
                 UserId = transaction.UserId,
+                InstrumentId = transaction.InstrumentId, //o podría ser instrument.Id, pero lo dejo así por ser coherente con el resto del código
                 Ticker = transaction.Ticker,
                 Quantity = transaction.Quantity,
                 Price = transaction.Price,
                 Currency = transaction.Currency.ToString(),
                 ExchangeRate = transaction.ExchangeRate,
+                ConversionRatio = transaction.ConversionRatio,
                 Type = MapToEventType(transaction.Type),
                 CreatedAt = transaction.CreatedAt,
                 SequenceNumber = transaction.Version
             };
             var outboxMessage = new OutboxMessage
             {
+                Id = Guid.NewGuid(),
                 Type = integrationEvent.GetType().Name,
                 Content = JsonSerializer.Serialize(integrationEvent),
-                OccurredOnUtc = DateTime.UtcNow
+                OccurredOnUtc = DateTime.UtcNow,
+                IdempotencyKey = transaction.Id
             };
             // 5.Guardar → Guardar evento → Commit
             _context.OutboxMessages.Add(outboxMessage);
@@ -141,6 +162,7 @@ public class TransactionService : ITransactionService
                 transaction.Quantity,
                 transaction.Price,
                 transaction.ExchangeRate,
+                transaction.ConversionRatio,
                 transaction.Currency.ToString(),
                 transaction.CreatedAt,
                 transaction.Type.ToString()
@@ -158,21 +180,12 @@ public class TransactionService : ITransactionService
     {
         var transactions = await _repository.GetByUserIdAsync(userId);
 
-        return transactions.Select(t => new TransactionDto(
-            t.Id,
-            t.Ticker,
-            t.Quantity,
-            t.Price,
-            t.ExchangeRate,
-            t.Currency.ToString(),
-            t.CreatedAt,
-            t.Type.ToString()
-        ));
+        return transactions.Select(t => MapToDto(t));
     }
 
-    public async Task<IEnumerable<TransactionDto>> GetTransactionHistoryByTickerAsync(Guid userId, string ticker)
+    public async Task<IEnumerable<TransactionDto>> GetTransactionHistoryByTickerAsync(Guid userId, Guid instrumentId)
     {
-        var transactions = await _repository.GetByUserIdAndTickerAsync(userId, ticker.ToUpper());
+        var transactions = await _repository.GetByUserIdAndTickerAsync(userId, instrumentId);
         return transactions.Select(t => MapToDto(t));
     }
 
@@ -190,6 +203,7 @@ public class TransactionService : ITransactionService
             t.Quantity,
             t.Price,
             t.ExchangeRate,
+            t.ConversionRatio,
             t.Currency.ToString(),
             t.CreatedAt,
             t.Type.ToString()
@@ -202,13 +216,16 @@ public class TransactionService : ITransactionService
 
         var transaction = await _repository.GetByIdAsync(id);
 
-        if (transaction == null)
-            return (false, "Transacción no encontrada");
+        if (transaction == null) return (false, "Transacción no encontrada");
+
 
         var oldQuantity = transaction.Quantity;
         var oldTicker = transaction.Ticker;
         var oldPrice = transaction.Price;
+        var oldExchangeRate = transaction.ExchangeRate;
+        var oldInstrumentId = transaction.InstrumentId;
         var oldType = transaction.Type;
+        var oldCurrency = transaction.Currency.ToString();
 
         // aplicar cambios
         transaction.Quantity = request.Quantity;
@@ -229,16 +246,22 @@ public class TransactionService : ITransactionService
             {
                 Id = transaction.Id,
                 UserId = transaction.UserId,
+                InstrumentId = transaction.InstrumentId,
                 Ticker = transaction.Ticker,
                 Quantity = transaction.Quantity,
                 Price = transaction.Price,
+                Currency = transaction.Currency.ToString(),
+                ExchangeRate = transaction.ExchangeRate,
+                ConversionRatio = transaction.ConversionRatio,
                 Type = MapToEventType(transaction.Type),
                 CreatedAt = DateTime.UtcNow,
 
                 PreviousTicker = oldTicker,
                 PreviousQuantity = oldQuantity,
                 PreviousPrice = oldPrice,
-                PreviousCurrency = transaction.Currency.ToString(),
+                PreviousExchangeRate = oldExchangeRate,
+                PreviousInstrumentId = oldInstrumentId,
+                PreviousCurrency = oldCurrency,
                 PreviousType = MapToEventType(oldType),
 
                 SequenceNumber = transaction.Version
@@ -284,11 +307,13 @@ public class TransactionService : ITransactionService
             {
                 Id = transaction.Id,
                 UserId = transaction.UserId,
+                InstrumentId = transaction.InstrumentId,
                 Ticker = transaction.Ticker,
                 Quantity = transaction.Quantity,
                 Price = transaction.Price,
                 Currency = transaction.Currency.ToString(),
                 ExchangeRate = transaction.ExchangeRate,
+                ConversionRatio = transaction.ConversionRatio,
                 Type = MapToEventType(transaction.Type),
                 CreatedAt = DateTime.UtcNow,
                 SequenceNumber = transaction.Version + 1

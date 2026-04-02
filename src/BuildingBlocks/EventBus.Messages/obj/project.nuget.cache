@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "g2AXIHLxdm8=",
+  "dgSpecHash": "NIKUp1Jhubg=",
   "success": true,
-  "projectFilePath": "E:\\Proyects\\C#\\InvestmentTracker\\src\\BuildingBlocks\\EventBus.Messages\\EventBus.Messages.csproj",
+  "projectFilePath": "/src/src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

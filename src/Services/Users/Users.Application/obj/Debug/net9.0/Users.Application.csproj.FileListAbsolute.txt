@@ -34,3 +34,8 @@ E:/Proyects/C#/InvestmentTracker/src/Services/Users/Users.Application/obj/Debug/
 /src/src/Services/Users/Users.Application/obj/Debug/net9.0/refint/Users.Application.dll
 /src/src/Services/Users/Users.Application/obj/Debug/net9.0/Users.Application.pdb
 /src/src/Services/Users/Users.Application/obj/Debug/net9.0/ref/Users.Application.dll
+E:/Proyects/C#/InvestmentTracker/src/Services/Users/Users.Application/obj/Debug/net9.0/Users.Application.sourcelink.json
+E:/Proyects/C#/InvestmentTracker/src/Services/Users/Users.Application/bin/Debug/net9.0/EventBus.Messages.dll
+E:/Proyects/C#/InvestmentTracker/src/Services/Users/Users.Application/bin/Debug/net9.0/EventBus.Messages.pdb
+/src/src/Services/Users/Users.Application/bin/Debug/net9.0/EventBus.Messages.dll
+/src/src/Services/Users/Users.Application/bin/Debug/net9.0/EventBus.Messages.pdb

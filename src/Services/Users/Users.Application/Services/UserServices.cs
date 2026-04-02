@@ -1,8 +1,8 @@
 using Users.Application.DTOs;
 using Users.Application.Interfaces;
 using Users.Domain.Entities;
-using EventBus.Messages.Events;
 using MassTransit;
+using EventBus.Messages.Events;
 
 namespace Users.Application.Services;
 

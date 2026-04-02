@@ -1,12 +1,23 @@
-using MarketData.API.Interfaces;
-using MarketData.API.Services;
 using MassTransit;
+using MarketData.Application.Interfaces;
+using MarketData.Application.Services;
+using MarketData.Infrastructure.Providers;
+using MarketData.Infrastructure.Http;
+using MarketData.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Registrar HttpClient para el proveedor de precios
-builder.Services.AddHttpClient<IMarketProvider, DolarProvider>();
+// 1.1 Registrar servicios de aplicación e infraestructura
+builder.Services.AddScoped<IPriceProvider, FinnhubPriceProvider>();
 
+builder.Services.AddDbContext<MarketDataContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+//agregamos memoria caché para almacenar los datos de mercado temporalmente
+builder.Services.AddMemoryCache();
+
+builder.Services.AddScoped<CachedPriceService>();
+builder.Services.AddHttpClient<FinnhubClient>();
 // 2. Configurar MassTransit (Solo si este servicio va a publicar eventos en el futuro)
 builder.Services.AddMassTransit(config =>
 {
@@ -18,7 +29,7 @@ builder.Services.AddMassTransit(config =>
 
 // 3. Agregar servicios básicos de API
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(); // Cambié OpenApi por Swagger por compatibilidad estándar
+builder.Services.AddSwaggerGen(); 
 
 var app = builder.Build();
 
@@ -28,19 +39,5 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-// Endpoint para consultar precios
-app.MapGet("/api/market/{ticker}", async (string ticker, IMarketProvider provider) =>
-{
-    try
-    {
-        var price = await provider.GetPriceAsync(ticker.ToUpper());
-        return price is not null ? Results.Ok(price) : Results.NotFound();
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem($"Error obteniendo precio: {ex.Message}");
-    }
-});
 
 app.Run();

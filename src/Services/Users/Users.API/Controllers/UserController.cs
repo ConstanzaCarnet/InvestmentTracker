@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Users.Application.DTOs;
 using Users.Application.Interfaces;
-using Users.Application.Services
+using Users.Application.Services;
+
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase

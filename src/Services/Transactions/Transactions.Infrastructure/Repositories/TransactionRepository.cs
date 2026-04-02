@@ -24,9 +24,9 @@ public class TransactionRepository : ITransactionRepository
             .ToListAsync();
 
     //agrgamos busqueda por triket
-    public async Task<IEnumerable<Transaction>> GetByUserIdAndTickerAsync(Guid userId, string ticker)
+    public async Task<IEnumerable<Transaction>> GetByUserIdAndTickerAsync(Guid userId, Guid instrumentId)
         => await _context.Transactions
-            .Where(t => t.UserId == userId && t.Ticker == ticker)
+            .Where(t => t.UserId == userId && t.InstrumentId == instrumentId)
             .ToListAsync();
     //busqueda por Id y fecha
     public async Task<IEnumerable<Transaction>> GetByUserIdAndDateAsync(Guid userId, DateTime date)
@@ -40,19 +40,19 @@ public class TransactionRepository : ITransactionRepository
     public void Remove(Transaction transaction)
         => _context.Transactions.Remove(transaction);
 
-    public async Task<long> GetNextVersionAsync(Guid userId, string ticker)
+    public async Task<long> GetNextVersionAsync(Guid userId, Guid instrumentId)
     {
         var lastVersion = await _context.Transactions
-            .Where(t => t.UserId == userId && t.Ticker == ticker)//busca la ultima version
+            .Where(t => t.UserId == userId && t.InstrumentId == instrumentId)//busca la ultima version
             .MaxAsync(t => (long?)t.Version);
         //retorna la siguiente o si no existe 0
         return (lastVersion ?? 0) + 1;
     }
 
-    public async Task<decimal> GetCurrentPositionAsync(Guid userId, string ticker)
+    public async Task<decimal> GetCurrentPositionAsync(Guid userId, Guid instrumentId)
     {
         return await _context.Transactions
-            .Where(t => t.UserId == userId && t.Ticker == ticker)
+            .Where(t => t.UserId == userId && t.InstrumentId == instrumentId)
             .SumAsync(t =>
                 t.Type == TransactionType.BUY
                 ? t.Quantity

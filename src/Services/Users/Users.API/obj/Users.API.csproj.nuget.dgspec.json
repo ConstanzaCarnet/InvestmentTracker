@@ -189,6 +189,9 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
+              "/src/src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj": {
+                "projectPath": "/src/src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj"
+              },
               "/src/src/Services/Users/Users.Domain/Users.Domain.csproj": {
                 "projectPath": "/src/src/Services/Users/Users.Domain/Users.Domain.csproj"
               }
@@ -210,6 +213,16 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
+          "dependencies": {
+            "MassTransit": {
+              "target": "Package",
+              "version": "[8.3.0, )"
+            },
+            "MassTransit.RabbitMQ": {
+              "target": "Package",
+              "version": "[8.3.0, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

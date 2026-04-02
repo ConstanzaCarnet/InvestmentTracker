@@ -975,8 +975,19 @@
           }
         }
       },
+      "EventBus.Messages/1.0.0": {
+        "runtime": {
+          "EventBus.Messages.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
       "Users.Application/1.0.0": {
         "dependencies": {
+          "EventBus.Messages": "1.0.0",
+          "MassTransit": "8.3.0",
+          "MassTransit.RabbitMQ": "8.3.0",
           "Users.Domain": "1.0.0"
         },
         "runtime": {
@@ -1636,6 +1647,11 @@
       "sha512": "sha512-IXoJOXIqc39AIe+CIR7koBtRGMiCt/LPM3lI+PELtDIy9XdyeSrwXFdWV9dzJ2Awl0paLWUaknLxFQ5HpHZUog==",
       "path": "system.windows.extensions/6.0.0",
       "hashPath": "system.windows.extensions.6.0.0.nupkg.sha512"
+    },
+    "EventBus.Messages/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
     },
     "Users.Application/1.0.0": {
       "type": "project",

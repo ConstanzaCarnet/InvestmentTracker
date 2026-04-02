@@ -4,17 +4,14 @@ namespace Holdings.Infrastructure.Services;
 
 public class FakeMarketDataClient : IMarketDataClient
 {
-    public Task<decimal> GetPriceAsync(string ticker)
+    public Task<Dictionary<Guid, decimal>> GetPricesAsync(List<Guid> instrumentIds)
     {
-        // Simulamos precios distintos según ticker
-        var price = ticker.ToUpper() switch
-        {
-            "AAPL" => 180m,
-            "TSLA" => 250m,
-            "MSFT" => 330m,
-            _ => 100m
-        };
+        // Simulación simple
+        var result = instrumentIds.ToDictionary(
+            id => id,
+            id => 100m // precio fijo fake
+        );
 
-        return Task.FromResult(price);
+        return Task.FromResult(result);
     }
 }

@@ -26,77 +26,101 @@ public class TransactionUpdatedConsumer : IConsumer<TransactionUpdatedEvent>
     public async Task Consume(ConsumeContext<TransactionUpdatedEvent> context)
     {
         var message = context.Message;
-        
-        var type = TransactionTypeMapper.ToDomain(message.Type);
 
-        await using var dbTransaction = await _context.Database.BeginTransactionAsync(context.CancellationToken);
+        await using var dbTransaction =
+            await _context.Database.BeginTransactionAsync(context.CancellationToken);
 
         try
         {
             var newTicker = message.Ticker.Trim().ToUpperInvariant();
             var oldTicker = message.PreviousTicker.Trim().ToUpperInvariant();
-            //revisamos si el ticker cambió para saber si debemos revertir en la misma posición o en otra
-            var tickerChanged = !string.Equals(newTicker, oldTicker, StringComparison.OrdinalIgnoreCase);
 
-            // 1️ Revertimos la posición anterior
-            var oldPosition = await _repository.GetPositionAsync(message.UserId, oldTicker);
+            var instrumentChanged = message.InstrumentId != message.PreviousInstrumentId;
+
+            // 🔵 1. REVERTIR
+            var oldPosition = await _repository.GetPositionAsync(
+                message.UserId,
+                message.PreviousInstrumentId);
 
             if (oldPosition != null)
             {
-                oldPosition.Revert(
+                var oldLot = oldPosition.GetOrCreateLot(message.PreviousCurrency);
+
+                oldLot.Revert(
                     message.PreviousQuantity,
                     message.PreviousPrice,
-                    type);
+                    message.PreviousConversionRatio,
+                    message.PreviousExchangeRate,
+                    message.PreviousType
+                );
 
-                if (oldPosition.Quantity <= 0)
+                if (!oldPosition.Lots.Any())
                     _repository.RemovePosition(oldPosition);
                 else
                     _repository.UpdatePosition(oldPosition);
             }
 
-            // 2️ Si el ticker cambió debemos aplicar en otra posición
-            var targetTicker = tickerChanged ? newTicker : oldTicker;
+            // 🔵 2. APLICAR NUEVO
+            var targetInstrumentId = instrumentChanged
+                ? message.InstrumentId
+                : message.PreviousInstrumentId;
 
-            var position = await _repository.GetPositionAsync(message.UserId, targetTicker);
+            var position = await _repository.GetPositionAsync(
+                message.UserId,
+                targetInstrumentId);
 
             if (position == null)
             {
-                position = new Position(message.UserId, targetTicker);
+                position = new Position(
+                    message.UserId,
+                    targetInstrumentId,
+                    newTicker
+                );
+
                 await _repository.AddPositionAsync(position);
             }
 
+            //  VALIDACIÓN GLOBAL (una sola vez)
+            position.ValidateAndApplySequence(
+                message.SequenceNumber,
+                message.CreatedAt
+            );
+
+            var lot = position.GetOrCreateLot(message.Currency);
+
             if (message.Type == TransactionType.BUY)
             {
-                position.Buy(
+                lot.Buy(
                     message.Quantity,
                     message.Price,
-                    message.SequenceNumber,
-                    message.CreatedAt);
+                    message.ConversionRatio,
+                    message.ExchangeRate
+                );
             }
             else
             {
-                var shouldDelete = position.Sell(
+                var shouldDeleteLot = lot.Sell(
                     message.Quantity,
                     message.Price,
-                    message.SequenceNumber,
-                    message.CreatedAt);
+                    message.ConversionRatio
+                );
 
-                if (shouldDelete)
-                    _repository.RemovePosition(position);
-                else
-                    _repository.UpdatePosition(position);
+                if (shouldDeleteLot)
+                    position.RemoveLot(lot);
             }
 
-            await _context.SaveChangesAsync(context.CancellationToken);
+            if (!position.Lots.Any())
+                _repository.RemovePosition(position);
+            else
+                _repository.UpdatePosition(position);
 
+            await _context.SaveChangesAsync(context.CancellationToken);
             await dbTransaction.CommitAsync(context.CancellationToken);
         }
         catch (Exception ex)
         {
             await dbTransaction.RollbackAsync(context.CancellationToken);
-
             _logger.LogError(ex, "Error processing TransactionUpdatedEvent");
-
             throw;
         }
     }

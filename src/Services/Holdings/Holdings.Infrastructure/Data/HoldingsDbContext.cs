@@ -11,6 +11,8 @@ public class HoldingsDbContext : DbContext
 
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<Position> Positions => Set<Position>();
+    public DbSet<PositionLot> PositionLots => Set<PositionLot>();
+
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -45,28 +47,58 @@ public class HoldingsDbContext : DbContext
             position.HasKey(p => p.Id);
             position.Property(p => p.UserId)
                     .IsRequired();
-            position.Property(p => p.Ticker)
-                    .IsRequired();
-            position.Property(p => p.Quantity)
-                    .HasPrecision(18, 4);
-            position.Property(p => p.InvestedAmount)
-                    .HasPrecision(18, 4);
-            position.Property(p => p.TotalBoughtAmount)
-                    .HasPrecision(18, 4);
-            position.Property(p => p.TotalSoldAmount)
-                    .HasPrecision(18, 4);
-            position.Property(p => p.TotalBoughtQuantity)
-                    .HasPrecision(18, 4);
-            position.Property(p => p.TotalSoldQuantity)
-                    .HasPrecision(18, 4);
-            position.Property(p => p.LastProcessedSequenceNumber)
-                    .IsRequired();
-            position.HasIndex(p => new { p.UserId, p.Ticker })
+            
+            position.HasIndex(p => new { p.UserId, p.InstrumentId })
                     .IsUnique();
 
-            position.Ignore(p => p.AveragePurchasePrice);
-            position.Ignore(p => p.AverageBoughtPrice);
-            position.Ignore(p => p.AverageSoldPrice);
+            position.Property(p => p.InstrumentId)
+                    .IsRequired();
+
+            position.Property(p => p.Ticker)
+                    .IsRequired();
+            //agregamos los lots
+            position.HasMany(p => p.Lots)
+                    .WithOne()
+                    .HasForeignKey(l => l.PositionId)
+                    .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<PositionLot>(lot =>
+        {
+            lot.HasKey(l => l.Id);
+            //aclaramos PositionId como foreign key, aunque EF lo infiere por la convención, es para dejarlo explícito y claro
+            lot.HasOne<Position>()
+                .WithMany(p => p.Lots)
+                .HasForeignKey(l => l.PositionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            lot.Property(l => l.PositionId)
+                .IsRequired();
+
+            lot.Property(l => l.Currency)
+                .IsRequired();
+
+            lot.Property(l => l.Quantity)
+                .HasPrecision(18, 4);
+            lot.Property(l => l.RealQuantity)
+                .HasPrecision(18, 4);
+            lot.Property(l => l.InvestedAmount)
+                .HasPrecision(18, 4);
+            lot.Property(l => l.InvestedAmountRaw)
+                .HasPrecision(18, 4);
+            lot.Property(l => l.TotalBoughtQuantity)
+                .HasPrecision(18, 4);
+            lot.Property(l => l.TotalBoughtAmount)
+                .HasPrecision(18, 4);
+            lot.Property(l => l.TotalSoldQuantity)
+                .HasPrecision(18, 4);
+            lot.Property(l => l.TotalSoldAmount)
+                .HasPrecision(18, 4);
+
+
+            lot.Ignore(p => p.AveragePurchasePrice);
+            lot.Ignore(p => p.AverageBoughtPrice);
+            lot.Ignore(p => p.AverageSoldPrice);
         });
     }
 }

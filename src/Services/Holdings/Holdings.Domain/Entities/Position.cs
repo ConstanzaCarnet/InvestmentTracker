@@ -6,114 +6,61 @@ public class Position
 {
     public Guid Id { get; private set; }
     public Guid UserId { get; private set; }
+    public Guid InstrumentId { get; set; }
     public string Ticker { get; private set; }
-    public decimal Quantity { get; private set; }
-    // dinero neto invertido
-    public decimal InvestedAmount { get; private set; }
-    // acumuladores para luego calcular promedios correspondientes
-    public decimal TotalBoughtAmount { get; private set; }
-    public decimal TotalSoldAmount { get; private set; }
-    
-    public decimal TotalBoughtQuantity { get; private set; }
-    public decimal TotalSoldQuantity { get; private set; }
-    // propiedades calculadas para obtener el precio promedio de compra y venta
-    public decimal AverageBoughtPrice => TotalBoughtQuantity == 0 ? 0 : TotalBoughtAmount / TotalBoughtQuantity;
-    public decimal AverageSoldPrice => TotalSoldQuantity == 0 ? 0 : TotalSoldAmount / TotalSoldQuantity;
 
-    public decimal AveragePurchasePrice => Quantity == 0 ? 0 : InvestedAmount / Quantity;
-    // control de lectura de los mensajes, asi evitamos que se lean en cualquier orden, y que se procesen mensajes viejos o duplicados
+    public List<PositionLot> Lots { get; private set; } = new();
+
     public long LastProcessedSequenceNumber { get; private set; }
     public DateTime LastTransactionDate { get; private set; }
+
+    // Totales consolidados (lo que quiere el cliente)
+    public decimal TotalQuantity => Lots.Sum(x => x.Quantity);
+    public decimal TotalRealQuantity => Lots.Sum(x => x.RealQuantity);
+    public decimal TotalInvestedAmount => Lots.Sum(x => x.InvestedAmount);
 
     //constructores
     private Position() { }
 
-    public Position(Guid userId, string ticker)
+    public Position(Guid userId, Guid instrumentId, string ticker)
     {
         Id = Guid.NewGuid();
         UserId = userId;
+        InstrumentId = instrumentId;
         Ticker = ticker;
-        Quantity = 0;
-        InvestedAmount = 0;
-        TotalBoughtAmount = 0;
-        TotalSoldAmount = 0;
-        TotalBoughtQuantity = 0;
-        TotalSoldQuantity = 0;
-    }
-    //metodos de la entidad
-    public void Buy(decimal quantity, decimal price, long sequence, DateTime createdAt)
-    {
-        ValidateSequence(sequence);
-
-        var totalCost = quantity * price;
-
-        Quantity += quantity;
-
-        InvestedAmount += totalCost;
-
-        TotalBoughtQuantity += quantity;
-        TotalBoughtAmount += totalCost;
-
-        ApplyMetadata(sequence, createdAt);
     }
 
-    public bool Sell(decimal quantity, decimal price, long sequence, DateTime createdAt)
+    // metodo para obtener o crear un lote específico para una moneda determinada, lo que permite manejar múltiples lotes dentro de la misma posición, cada uno con su propia moneda y detalles de inversión
+    public PositionLot GetOrCreateLot(string currency)
     {
-        ValidateSequence(sequence);
+        var lot = Lots.FirstOrDefault(x => x.Currency == currency);
 
-        if (quantity > Quantity)
-            throw new InvalidOperationException("Insufficient quantity");
-
-        var totalSell = quantity * price;
-
-        Quantity -= quantity;
-
-        InvestedAmount -= totalSell;
-
-        TotalSoldQuantity += quantity;
-        TotalSoldAmount += totalSell;
-
-        ApplyMetadata(sequence, createdAt);
-
-        return Quantity == 0;
-    }
-    // metodo para revertir una transacción en caso de que se detecte un error o inconsistencia, como una venta sin suficiente cantidad o un número de secuencia duplicado
-    public void Revert(decimal quantity, decimal price, TransactionType type)
-    {
-        var total = quantity * price;
-
-        if (type == TransactionType.BUY)
+        if (lot == null)
         {
-            Quantity -= quantity;
-            InvestedAmount -= total;
-
-            TotalBoughtQuantity -= quantity;
-            TotalBoughtAmount -= total;
+            lot = new PositionLot(currency);
+            Lots.Add(lot);
         }
-        else // SELL
-        {
-            Quantity += quantity;
-            InvestedAmount += total;
 
-            TotalSoldQuantity -= quantity;
-            TotalSoldAmount -= total;
-        }
+        return lot;
     }
-    //logica interna
-    private void ValidateSequence(long sequence)
+
+    public void RemoveLot(PositionLot lot)
+    {
+        Lots.Remove(lot);
+    }
+
+    public void ValidateAndApplySequence(long sequence, DateTime createdAt)
     {
         if (sequence <= LastProcessedSequenceNumber)
             throw new InvalidOperationException("Duplicate or old event");
 
         if (sequence != LastProcessedSequenceNumber + 1)
             throw new InvalidOperationException("Out of order event");
-    }
 
-    private void ApplyMetadata(long sequence, DateTime createdAt)
-    {
         LastProcessedSequenceNumber = sequence;
         LastTransactionDate = createdAt;
     }
+ 
 }
 
 

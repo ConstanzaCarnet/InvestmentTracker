@@ -20,10 +20,13 @@ public class HoldingRepository : IHoldingRepository
         return await _context.Accounts.FirstOrDefaultAsync(a => a.UserId == userId);
     }
 
-    public async Task<Position?> GetPositionAsync(Guid userId, string ticker)
+    public async Task<Position?> GetPositionAsync(Guid userId, Guid instrumentId)
     {
         return await _context.Positions
-            .FirstOrDefaultAsync(p => p.UserId == userId && p.Ticker == ticker);
+            .Include(p => p.Lots)
+            .FirstOrDefaultAsync(p =>
+                p.UserId == userId &&
+                p.InstrumentId == instrumentId);
     }
 
     public async Task AddPositionAsync(Position position)
@@ -40,4 +43,14 @@ public class HoldingRepository : IHoldingRepository
     {
         _context.Positions.Remove(position);
     }
+
+    public async Task<List<Position>> GetPortfolioAsync(Guid userId)
+    {
+        return await _context.Positions
+            .Include(p => p.Lots)
+            .Where(p => p.UserId == userId)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
 }

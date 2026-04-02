@@ -41,3 +41,4 @@ E:/Proyects/C#/InvestmentTracker/src/Services/Users/Users.Domain/obj/Debug/net9.
 /src/src/Services/Users/Users.Domain/obj/Debug/net9.0/Users.Domain.pdb
 /src/src/Services/Users/Users.Domain/obj/Debug/net9.0/Users.Domain.genruntimeconfig.cache
 /src/src/Services/Users/Users.Domain/obj/Debug/net9.0/ref/Users.Domain.dll
+E:/Proyects/C#/InvestmentTracker/src/Services/Users/Users.Domain/obj/Debug/net9.0/Users.Domain.sourcelink.json

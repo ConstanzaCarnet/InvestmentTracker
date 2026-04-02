@@ -1,0 +1,51 @@
+Ticker,Name,Exchange,ConversionRatio,Sector,Region,AssetType,IsActive
+AAPL,Apple Inc.,NASDAQ,20.0,Technology,United States,CEDEAR,true
+TSLA,Tesla Inc.,NASDAQ,15.0,Consumer Discretionary,United States,CEDEAR,true
+MELI,MercadoLibre Inc.,NASDAQ,120.0,Consumer Discretionary,Argentina/Latam,CEDEAR,true
+AMZN,Amazon.com Inc.,NASDAQ,144.0,Consumer Discretionary,United States,CEDEAR,true
+MSFT,Microsoft Corp.,NASDAQ,30.0,Technology,United States,CEDEAR,true
+NVDA,NVIDIA Corp.,NASDAQ,48.0,Technology,United States,CEDEAR,true
+GOOGL,Alphabet Inc. Class A,NASDAQ,58.0,Communication Services,United States,CEDEAR,true
+META,Meta Platforms Inc.,NASDAQ,44.0,Communication Services,United States,CEDEAR,true
+NFLX,Netflix Inc.,NASDAQ,100.0,Communication Services,United States,CEDEAR,true
+BRKB,Berkshire Hathaway Inc.,NYSE,44.0,Financials,United States,CEDEAR,true
+KO,Coca-Cola Co.,NYSE,15.0,Consumer Staples,United States,CEDEAR,true
+PEP,PepsiCo Inc.,NASDAQ,18.0,Consumer Staples,United States,CEDEAR,true
+WMT,Walmart Inc.,NYSE,18.0,Consumer Staples,United States,CEDEAR,true
+NKE,Nike Inc.,NYSE,12.0,Consumer Discretionary,United States,CEDEAR,true
+DIS,Walt Disney Co.,NYSE,12.0,Communication Services,United States,CEDEAR,true
+BA,Boeing Co.,NYSE,20.0,Industrials,United States,CEDEAR,true
+V,Visa Inc.,NYSE,18.0,Financials,United States,CEDEAR,true
+MA,Mastercard Inc.,NYSE,33.0,Financials,United States,CEDEAR,true
+JPM,JPMorgan Chase & Co.,NYSE,20.0,Financials,United States,CEDEAR,true
+GOLD,Barrick Gold Corp.,NYSE,1.0,Materials,Canada,CEDEAR,true
+VALE,Vale SA ADR,NYSE,2.0,Materials,Brazil,CEDEAR,true
+VIST,Vista Energy S.A.B.,NYSE,3.0,Energy,Argentina,CEDEAR,true
+SPY,SPDR S&P 500 ETF,NYSEARCA,20.0,Index,United States,CEDEAR_ETF,true
+QQQ,Invesco QQQ Trust,NASDAQ,20.0,Index,United States,CEDEAR_ETF,true
+DIA,SPDR Dow Jones Industrial,NYSEARCA,20.0,Index,United States,CEDEAR_ETF,true
+IWM,iShares Russell 2000 ETF,NYSEARCA,10.0,Index,United States,CEDEAR_ETF,true
+EEM,iShares MSCI Emerging Markets,NYSEARCA,5.0,Index,Global,CEDEAR_ETF,true
+XLF,Financial Select Sector SPDR,NYSEARCA,2.0,Financials,United States,CEDEAR_ETF,true
+XLE,Energy Select Sector SPDR,NYSEARCA,2.0,Energy,United States,CEDEAR_ETF,true
+ARKK,ARK Innovation ETF,NYSEARCA,10.0,Technology,United States,CEDEAR_ETF,true
+AL30,Bonos de la Rep. Arg. 2030,BCBA,1.0,Government,Argentina,BOND,true
+GD30,Bonos de la Rep. Arg. 2030 (Ley Ext),BCBA,1.0,Government,Argentina,BOND,true
+AL35,Bonos de la Rep. Arg. 2035,BCBA,1.0,Government,Argentina,BOND,true
+AE38,Bonos de la Rep. Arg. 2038,BCBA,1.0,Government,Argentina,BOND,true
+GGAL,Grupo Financiero Galicia,BCBA,1.0,Financials,Argentina,STOCK,true
+YPFD,YPF Sociedad Anónima,BCBA,1.0,Energy,Argentina,STOCK,true
+PAMP,Pampa Energía S.A.,BCBA,1.0,Utilities,Argentina,STOCK,true
+CEPU,Central Puerto S.A.,BCBA,1.0,Utilities,Argentina,STOCK,true
+CRES,Cresud S.A.C.I.F.y A.,BCBA,1.0,Real Estate,Argentina,STOCK,true
+TXAR,Ternium Argentina S.A.,BCBA,1.0,Materials,Argentina,STOCK,true
+ALUA,Aluar Aluminio Argentino,BCBA,1.0,Materials,Argentina,STOCK,true
+EDN,Edenor S.A.,BCBA,1.0,Utilities,Argentina,STOCK,true
+BMA,Banco Macro S.A.,BCBA,1.0,Financials,Argentina,STOCK,true
+LOMA,Loma Negra C.I.A.S.A.,BCBA,1.0,Materials,Argentina,STOCK,true
+TGSU2,Transportadora Gas del Sur,BCBA,1.0,Utilities,Argentina,STOCK,true
+BYMA,Bolsas y Mercados Argentinos,BCBA,1.0,Financials,Argentina,STOCK,true
+COME,Sociedad Comercial del Plata,BCBA,1.0,Conglomerate,Argentina,STOCK,true
+BTC,Bitcoin,BINANCE,1.0,Technology,Global,CRYPTO,true
+ETH,Ethereum,BINANCE,1.0,Technology,Global,CRYPTO,true
+SOL,Solana,BINANCE,1.0,Technology,Global,CRYPTO,true

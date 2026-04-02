@@ -4059,40 +4059,32 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\carne\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "/root/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\Proyects\\C#\\InvestmentTracker\\src\\Services\\Transactions\\Transactions.Domain\\Transactions.Domain.csproj",
+      "projectUniqueName": "/src/src/Services/Transactions/Transactions.Domain/Transactions.Domain.csproj",
       "projectName": "Transactions.Domain",
-      "projectPath": "E:\\Proyects\\C#\\InvestmentTracker\\src\\Services\\Transactions\\Transactions.Domain\\Transactions.Domain.csproj",
-      "packagesPath": "C:\\Users\\carne\\.nuget\\packages\\",
-      "outputPath": "E:\\Proyects\\C#\\InvestmentTracker\\src\\Services\\Transactions\\Transactions.Domain\\obj\\",
+      "projectPath": "/src/src/Services/Transactions/Transactions.Domain/Transactions.Domain.csproj",
+      "packagesPath": "/root/.nuget/packages/",
+      "outputPath": "/src/src/Services/Transactions/Transactions.Domain/obj/",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\carne\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "/root/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net9.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "E:\\Proyects\\C#\\InvestmentTracker\\src\\BuildingBlocks\\EventBus.Messages\\EventBus.Messages.csproj": {
-              "projectPath": "E:\\Proyects\\C#\\InvestmentTracker\\src\\BuildingBlocks\\EventBus.Messages\\EventBus.Messages.csproj"
+            "/src/src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj": {
+              "projectPath": "/src/src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj"
             }
           }
         }
@@ -4146,7 +4138,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.311/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

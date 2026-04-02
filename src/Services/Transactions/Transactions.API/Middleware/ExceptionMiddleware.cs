@@ -31,7 +31,12 @@ public class ExceptionMiddleware
                 message = "An internal server error occurred"
             };
 
-            await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+            //await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+            await context.Response.WriteAsJsonAsync(new
+            {
+                message = ex.InnerException?.Message ?? ex.Message,
+                stackTrace = ex.StackTrace
+            });
         }
     }
 }

@@ -54,3 +54,8 @@ E:/Proyects/C#/InvestmentTracker/src/Services/Users/Users.Infrastructure/obj/Deb
 /src/src/Services/Users/Users.Infrastructure/obj/Debug/net9.0/Users.Infrastructure.pdb
 /src/src/Services/Users/Users.Infrastructure/obj/Debug/net9.0/Users.Infrastructure.genruntimeconfig.cache
 /src/src/Services/Users/Users.Infrastructure/obj/Debug/net9.0/ref/Users.Infrastructure.dll
+E:/Proyects/C#/InvestmentTracker/src/Services/Users/Users.Infrastructure/bin/Debug/net9.0/EventBus.Messages.dll
+E:/Proyects/C#/InvestmentTracker/src/Services/Users/Users.Infrastructure/bin/Debug/net9.0/EventBus.Messages.pdb
+E:/Proyects/C#/InvestmentTracker/src/Services/Users/Users.Infrastructure/obj/Debug/net9.0/Users.Infrastructure.sourcelink.json
+/src/src/Services/Users/Users.Infrastructure/bin/Debug/net9.0/EventBus.Messages.dll
+/src/src/Services/Users/Users.Infrastructure/bin/Debug/net9.0/EventBus.Messages.pdb

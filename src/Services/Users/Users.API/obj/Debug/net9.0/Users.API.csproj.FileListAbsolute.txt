@@ -292,7 +292,6 @@ E:/Proyects/C#/InvestmentTracker/src/Services/Users/Users.API/obj/Debug/net9.0/r
 E:/Proyects/C#/InvestmentTracker/src/Services/Users/Users.API/obj/Debug/net9.0/Users.API.pdb
 E:/Proyects/C#/InvestmentTracker/src/Services/Users/Users.API/obj/Debug/net9.0/Users.API.genruntimeconfig.cache
 E:/Proyects/C#/InvestmentTracker/src/Services/Users/Users.API/obj/Debug/net9.0/ref/Users.API.dll
-E:/Proyects/C#/InvestmentTracker/src/Services/Users/Users.API/obj/Debug/net9.0/staticwebassets.upToDateCheck.txt
 /src/src/Services/Users/Users.API/bin/Debug/net9.0/appsettings.Development.json
 /src/src/Services/Users/Users.API/bin/Debug/net9.0/appsettings.json
 /src/src/Services/Users/Users.API/bin/Debug/net9.0/Users.API.staticwebassets.endpoints.json
@@ -445,3 +444,4 @@ E:/Proyects/C#/InvestmentTracker/src/Services/Users/Users.API/obj/Debug/net9.0/s
 /src/src/Services/Users/Users.API/obj/Debug/net9.0/Users.API.pdb
 /src/src/Services/Users/Users.API/obj/Debug/net9.0/Users.API.genruntimeconfig.cache
 /src/src/Services/Users/Users.API/obj/Debug/net9.0/ref/Users.API.dll
+E:/Proyects/C#/InvestmentTracker/src/Services/Users/Users.API/obj/Debug/net9.0/Users.API.sourcelink.json

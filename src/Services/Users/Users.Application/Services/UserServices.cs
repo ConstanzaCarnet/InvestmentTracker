@@ -12,13 +12,16 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _repository;
     private readonly IPublishEndpoint _publishEndpoint;
+    private readonly IJwtTokenGenerator _tokenGenerator;
 
     public UserService(
         IUserRepository repository,
-        IPublishEndpoint publishEndpoint)
+        IPublishEndpoint publishEndpoint,
+        IJwtTokenGenerator tokenGenerator)
     {
         _repository = repository;
         _publishEndpoint = publishEndpoint;
+        _tokenGenerator = tokenGenerator;
     }
 
     public async Task<Guid> CreateUserAsync(UserCreateDto dto)
@@ -44,6 +47,20 @@ public class UserService : IUserService
         });
 
         return user.Id;
+    }
+
+    public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
+    {
+        var user = await _repository.GetByEmailAsync(dto.Email);
+
+        // Importante: mismo error para "email no existe" y "password incorrecta".
+        // Si distinguiéramos, un atacante podría enumerar qué emails están registrados.
+        if (user is null || !VerifyPassword(dto.Password, user.PasswordHash))
+            throw new DomainException("Invalid email or password.", statusCode: 401);
+
+        var token = _tokenGenerator.GenerateToken(user);
+
+        return new AuthResponseDto(token.AccessToken, token.ExpiresAtUtc, user.Id, user.Email);
     }
 
     public async Task<IEnumerable<UserDto>> GetAllAsync()
@@ -112,5 +129,23 @@ public class UserService : IUserService
             password, salt, iterations: 350_000,
             HashAlgorithmName.SHA512, outputLength: 32);
         return $"{Convert.ToBase64String(salt)}:{Convert.ToBase64String(hash)}";
+    }
+
+    // Espejo de HashPassword: re-derivamos con el MISMO salt e iteraciones,
+    // y comparamos. Debe usar los mismos parámetros o nunca coincidirá.
+    private static bool VerifyPassword(string password, string storedHash)
+    {
+        var parts = storedHash.Split(':');
+        if (parts.Length != 2) return false;
+
+        byte[] salt = Convert.FromBase64String(parts[0]);
+        byte[] expected = Convert.FromBase64String(parts[1]);
+
+        byte[] actual = Rfc2898DeriveBytes.Pbkdf2(
+            password, salt, iterations: 350_000,
+            HashAlgorithmName.SHA512, outputLength: expected.Length);
+
+        // FixedTimeEquals compara en tiempo constante → evita timing attacks.
+        return CryptographicOperations.FixedTimeEquals(actual, expected);
     }
 }

@@ -143,6 +143,18 @@ All new request DTOs should follow the same pattern.
 
 `TransactionService.ValidateAndGetInstrumentAsync` normalises the ticker on the application side (`Trim().ToUpperInvariant()`) before querying — never apply functions to the DB column or the unique index on `Ticker` won't be used. Throws `DomainException` (→ 400) for unknown or inactive tickers. This validation also runs on `UpdateTransactionAsync`.
 
+## Authentication (JWT) — Users service
+
+Users issues JWT bearer tokens. Other services are meant to validate them with the **same key** — no call back to Users — which is why the secret/issuer/audience must be shared identically across services.
+
+- **Login:** `POST /api/auth/login` (`AuthController`, public) → `AuthResponseDto { accessToken, expiresAtUtc, userId, email }`.
+- **Password hashing:** PBKDF2-SHA512, 350k iterations, random salt, stored as `base64(salt):base64(hash)`. `UserService.HashPassword` / `VerifyPassword` are mirrors — they must use identical params or verification never matches. Verify compares with `CryptographicOperations.FixedTimeEquals` (constant-time).
+- **Token generation:** `IJwtTokenGenerator` (Application interface) → `JwtTokenGenerator` (Infrastructure, `System.IdentityModel.Tokens.Jwt`). Claims: `sub`=userId, `email`, `jti`, `name`. Signed HMAC-SHA256.
+- **Validation:** `Program.cs` `AddAuthentication().AddJwtBearer(...)` with `TokenValidationParameters` (issuer, audience, lifetime, signing key). **Pipeline order matters**: `UseAuthentication()` before `UseAuthorization()`, both before `MapControllers()`.
+- **Config:** section `Jwt { Key, Issuer, Audience, ExpiryMinutes }` in `appsettings.json` (dev) overridden by `Jwt__*` env vars in docker-compose. Key must be ≥32 chars (256-bit). In prod the key belongs in a secret manager, never the repo.
+- **Protecting endpoints:** add `[Authorize]`. Read the caller id with `User.FindFirstValue(ClaimTypes.NameIdentifier)` — JwtBearer remaps the `sub` claim to `ClaimTypes.NameIdentifier`. This is what will replace the `userId` currently passed via route/body.
+- **DTO gotcha (.NET 9):** request DTOs with validation must be **records with properties** (like `BuyRequest`), NOT positional records with `[property: Required]` — the latter throws at runtime: *"validation metadata must be associated with the constructor parameter."*
+
 ## Docker on Windows — known issues
 
 `dotnet watch` with Windows volume mounts can crash with `ArgumentException: duplicate key` in `PollingDirectoryWatcher`. Set `DOTNET_USE_POLLING_FILE_WATCHER: "true"` in docker-compose to mitigate. When `dotnet watch` is stuck in crash loop, use `docker compose restart <service>` to force a clean rebuild.

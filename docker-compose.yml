@@ -47,6 +47,12 @@ services:
       DOTNET_USE_POLLING_FILE_WATCHER: "true"
       ConnectionStrings__DefaultConnection: Server=users-db;Database=UsersDb;User Id=sa;Password=WalletPassword123!;TrustServerCertificate=True;
       EventBusSettings__HostAddress: rabbitmq://rabbitmq
+      # JWT — el mismo secreto/issuer/audience deberá compartirse con los demás
+      # servicios cuando agreguemos [Authorize] allí (validan el token sin llamar a Users).
+      Jwt__Key: "docker-dev-secret-please-rotate-in-prod-0123456789abcdef"
+      Jwt__Issuer: "InvestmentTracker.Users"
+      Jwt__Audience: "InvestmentTracker.Clients"
+      Jwt__ExpiryMinutes: "60"
     volumes:
       - .:/src
     working_dir: /src/src/Services/Users/Users.API

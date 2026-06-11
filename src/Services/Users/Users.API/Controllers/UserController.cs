@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Users.Application.DTOs;
 using Users.Application.Interfaces;
@@ -23,7 +24,9 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize] // requiere un JWT válido; sin token → 401, con token inválido/expirado → 401
     [ProducesResponseType(typeof(IEnumerable<UserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetAll()
     {
         var users = await _service.GetAllAsync();

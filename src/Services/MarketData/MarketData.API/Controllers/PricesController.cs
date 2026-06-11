@@ -19,15 +19,17 @@ public class PricesController : ControllerBase
     [HttpPost("batch")]
     public async Task<IActionResult> GetBatchPrices([FromBody] BatchPriceRequest request)
     {
-        var prices = await _priceService.GetPricesAsync(request.InstrumentIds);
+        var prices = await _priceService.GetPricesAsync(request.Items);
 
         return Ok(new BatchPriceResponse
         {
             Prices = prices.Select(p => new PriceResponse
             {
                 InstrumentId = p.InstrumentId,
-                Price = p.Price,
-                Timestamp = p.Timestamp
+                Ticker       = p.Ticker,
+                Price        = p.Price,
+                Currency     = p.Currency,
+                Timestamp    = p.Timestamp
             }).ToList()
         });
     }

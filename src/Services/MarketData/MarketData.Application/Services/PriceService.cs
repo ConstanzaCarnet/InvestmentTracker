@@ -1,18 +1,15 @@
-﻿using MarketData.Application.DTOs;
+using MarketData.Application.DTOs;
 using MarketData.Application.Interfaces;
 using MarketData.Domain.Entities;
-using MarketData.Infrastructure.Data;
-//aqui hacemos mapping de PriceQuote a PriceResponseDto, y también agregamos el método GetPricesAsync para obtener precios de varios tickers al mismo tiempo, aprovechando la caché para evitar llamadas innecesarias al proveedor
+
+namespace MarketData.Application.Services;
+
 public class PriceService : IPriceService
 {
-    private readonly MarketDataDbContext _context;
     private readonly ICachedPriceService _cachedService;
 
-    public PriceService(
-        MarketDataDbContext context,
-        ICachedPriceService cachedService)
+    public PriceService(ICachedPriceService cachedService)
     {
-        _context = context;
         _cachedService = cachedService;
     }
 
@@ -21,19 +18,14 @@ public class PriceService : IPriceService
         return await _cachedService.GetPriceAsync(ticker);
     }
 
-    public async Task<List<PriceQuote>> GetPricesAsync(List<Guid> instrumentIds)
+    public async Task<List<PriceQuote>> GetPricesAsync(List<PriceRequestItem> items)
     {
-        var instruments = await _context.Instruments
-            .Where(i => instrumentIds.Contains(i.Id))
-            .ToListAsync();
-
-        //  1. Deduplicar tickers---> evito múltiples llamadas al proveedor por el mismo ticker si varios instrumentos lo comparten
-        var uniqueTickers = instruments
+        var uniqueTickers = items
             .Select(i => i.Ticker)
+            .Where(t => !string.IsNullOrWhiteSpace(t))
             .Distinct()
             .ToList();
 
-        //  2. Obtener precios UNA sola vez por ticker
         var tickerTasks = uniqueTickers.ToDictionary(
             ticker => ticker,
             ticker => _cachedService.GetPriceAsync(ticker)
@@ -41,20 +33,21 @@ public class PriceService : IPriceService
 
         await Task.WhenAll(tickerTasks.Values);
 
-        //  3. Mapear de vuelta a InstrumentId
         var results = new List<PriceQuote>();
 
-        foreach (var instrument in instruments)
+        foreach (var item in items)
         {
-            var quote = await tickerTasks[instrument.Ticker];
+            if (!tickerTasks.TryGetValue(item.Ticker, out var task))
+                continue;
 
+            var quote = task.Result;
             if (quote == null)
                 continue;
 
             results.Add(new PriceQuote
             {
-                InstrumentId = instrument.Id,
-                Ticker = instrument.Ticker,
+                InstrumentId = item.InstrumentId,
+                Ticker = item.Ticker.ToUpper(),
                 Price = quote.Price,
                 Currency = quote.Currency,
                 Timestamp = quote.Timestamp

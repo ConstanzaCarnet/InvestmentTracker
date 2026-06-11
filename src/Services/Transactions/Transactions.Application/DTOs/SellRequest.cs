@@ -1,21 +1,30 @@
+using System.ComponentModel.DataAnnotations;
 using Transactions.Domain.Enums;
+
 namespace Transactions.Application.DTOs;
 
 public record SellRequest
 {
-    public Guid UserId { get; set; } // Identificador del usuario que vende
-    public string Ticker { get; set; } = string.Empty; // Símbolo del activo a vender (Ej: "AAPL", "AL30")
-    public decimal Quantity { get; set; } // Cantidad a vender
-    public decimal Price { get; set; } // Precio unitario de venta
-    public decimal ExchangeRate { get; set; } // Tipo de cambio para convertir a la moneda base
-    public Currency Currency { get; set; } // Moneda en la que se realiza la venta
-    public AssetType AssetType;
-}
+    [Required]
+    public Guid UserId { get; set; }
 
-public enum AssetType
-{
-    Stock,
-    Bond,
-    ETF,
-    Crypto
+    [Required]
+    [MinLength(1, ErrorMessage = "Ticker is required.")]
+    [MaxLength(20, ErrorMessage = "Ticker must be 20 characters or fewer.")]
+    public string Ticker { get; set; } = string.Empty;
+
+    [Required]
+    [Range(typeof(decimal), "0.0001", "1000000000", ErrorMessage = "Quantity must be greater than 0.")]
+    public decimal Quantity { get; set; }
+
+    [Required]
+    [Range(typeof(decimal), "0.0001", "1000000000", ErrorMessage = "Price must be greater than 0.")]
+    public decimal Price { get; set; }
+
+    [Required]
+    [Range(typeof(decimal), "0.0001", "1000000000", ErrorMessage = "ExchangeRate must be greater than 0.")]
+    public decimal ExchangeRate { get; set; }
+
+    [Required]
+    public Currency Currency { get; set; }
 }

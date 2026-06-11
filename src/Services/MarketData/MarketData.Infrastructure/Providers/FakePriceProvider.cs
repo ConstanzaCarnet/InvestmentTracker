@@ -2,7 +2,7 @@
 using MarketData.Domain.Entities;
 
 namespace MarketData.Infrastructure.Providers;
-
+///Este Service solo servirá para Testing
 public class FakePriceProvider : IPriceProvider
 {
     public Task<PriceQuote?> GetPriceAsync(string ticker)

@@ -4,5 +4,5 @@ namespace MarketData.Application.Interfaces;
 
 public interface IPriceProvider
 {
-	Task<PriceQuote?> GetPriceAsync(string ticker);
+    Task<PriceQuote?> GetPriceAsync(string ticker);
 }

@@ -1,15 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Users.Infrastructure;
-using Users.Domain.Entities;
 using Users.Application.Interfaces;
 using Users.Infrastructure.Data;
 using Users.Infrastructure.Repositories;
 using Users.Application.Services;
-using Users.Infrastructure;
+using Users.API.Middleware;
 using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
-// Obtenemos la Connection String del archivo de configuración o variables de entorno (Docker)
+// Obtenemos la Connection String del archivo de configuraciï¿½n o variables de entorno (Docker)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 var eventBusSettings = builder.Configuration.GetSection("EventBusSettings");
@@ -21,21 +20,21 @@ builder.Services.AddDbContext<UsersDbContext>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 // Registro de Repositorios
-//con AddScoped se crea una instancia por cada petición HTTP
+//con AddScoped se crea una instancia por cada peticiï¿½n HTTP
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddControllers();
-// Configuración de MassTransit con RabbitMQ
+// Configuraciï¿½n de MassTransit con RabbitMQ
 builder.Services.AddMassTransit(x =>
 {
     //x.SetKebabCaseEndpointNameFormatter();
 
     x.UsingRabbitMq((context, cfg) =>
     {
-        // Si hostAddress es nulo o vacío, fallará rápido avisándote
+        // Si hostAddress es nulo o vacï¿½o, fallarï¿½ rï¿½pido avisï¿½ndote
         if (string.IsNullOrEmpty(hostAddress))
         {
-            throw new InvalidOperationException("RabbitMQ HostAddress no está configurado en appsettings o variables de entorno.");
+            throw new InvalidOperationException("RabbitMQ HostAddress no estï¿½ configurado en appsettings o variables de entorno.");
         }
         cfg.Host(hostAddress);
         cfg.ConfigureEndpoints(context);
@@ -48,8 +47,8 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    //con esto aseguro que la base de datos esté creada y migrada
-    //y que no falle si el contenedor de la base de datos aún no está listo
+    //con esto aseguro que la base de datos estï¿½ creada y migrada
+    //y que no falle si el contenedor de la base de datos aï¿½n no estï¿½ listo
     var services = scope.ServiceProvider;
     var logger = services.GetRequiredService<ILogger<Program>>();
     var dbContext = services.GetRequiredService<UsersDbContext>();
@@ -61,13 +60,13 @@ using (var scope = app.Services.CreateScope())
         {
             logger.LogInformation("Intentando aplicar migraciones... (Intentos restantes: {Retries})", retries);
             dbContext.Database.Migrate();
-            logger.LogInformation("Base de datos migrada con éxito.");
+            logger.LogInformation("Base de datos migrada con ï¿½xito.");
             break;
         }
         catch (Exception ex)
         {
             retries--;
-            logger.LogWarning("La base de datos no está lista todavía, reintentando en 5 segundos...");
+            logger.LogWarning("La base de datos no estï¿½ lista todavï¿½a, reintentando en 5 segundos...");
             Thread.Sleep(5000);
 
             if (retries == 0)
@@ -79,11 +78,10 @@ using (var scope = app.Services.CreateScope())
     }
 }
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.UseMiddleware<ExceptionMiddleware>();
 app.MapControllers();
 //app.UseHttpsRedirection();
 app.Run();

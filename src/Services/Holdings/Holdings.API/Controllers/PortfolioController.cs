@@ -2,7 +2,6 @@
 using Holdings.Application.Interfaces;
 using Holdings.Application.DTOs;
 
-
 namespace Holdings.API.Controllers;
 
 [ApiController]
@@ -21,30 +20,18 @@ public class PortfolioController : ControllerBase
     }
 
     [HttpGet("{userId}")]
-    public async Task<ActionResult<PortfolioDto>> GetPortfolio()
+    public async Task<ActionResult<PortfolioDto>> GetPortfolio(Guid userId)
     {
         try
         {
-            //Por ahora mockeamos el userId
-            var userId = GetUserId();
-
             var portfolio = await _portfolioService.GetPortfolioAsync(userId);
-
             return Ok(portfolio);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error fetching portfolio");
-
+            _logger.LogError(ex, "Error fetching portfolio for user {UserId}", userId);
             return StatusCode(500, "Internal server error");
         }
-    }
-
-    private Guid GetUserId()
-    {
-        // 🔴 TEMPORAL
-        // después viene de JWT / Identity
-        return Guid.Parse("11111111-1111-1111-1111-111111111111");
     }
 
 }

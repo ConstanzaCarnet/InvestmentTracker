@@ -19,7 +19,7 @@ public class CachedPriceService : ICachedPriceService
 
     public async Task<PriceQuote?> GetPriceAsync(string ticker)
     {
-        if (_cache.TryGetValue(ticker, out PriceQuote cached))
+        if (_cache.TryGetValue(ticker, out PriceQuote? cached) && cached is not null)
             return cached;
 
         var price = await _provider.GetPriceAsync(ticker);

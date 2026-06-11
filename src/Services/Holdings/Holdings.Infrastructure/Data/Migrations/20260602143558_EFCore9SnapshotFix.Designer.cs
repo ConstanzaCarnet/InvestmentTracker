@@ -4,6 +4,7 @@ using Holdings.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Holdings.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(HoldingsDbContext))]
-    partial class HoldingsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260602143558_EFCore9SnapshotFix")]
+    partial class EFCore9SnapshotFix
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

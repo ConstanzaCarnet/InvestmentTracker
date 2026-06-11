@@ -33,7 +33,7 @@ public class TransactionDeletedConsumer : IConsumer<TransactionDeletedEvent>
         try
         {
             var ticker = message.Ticker.Trim().ToUpperInvariant();
-            var type = TransactionTypeMapper.ToDomain(message.Type);
+            var mappedType = MapTransactionType(message.Type);
 
             var position = await _repository.GetPositionAsync(
                 message.UserId,
@@ -55,13 +55,12 @@ public class TransactionDeletedConsumer : IConsumer<TransactionDeletedEvent>
             );
 
             var lot = position.GetOrCreateLot(message.Currency);
-
             lot.Revert(
                 message.Quantity,
                 message.Price,
                 message.ConversionRatio,
                 message.ExchangeRate,
-                type
+                mappedType
             );
 
             if (lot.Quantity == 0)
@@ -80,5 +79,21 @@ public class TransactionDeletedConsumer : IConsumer<TransactionDeletedEvent>
             await dbTransaction.RollbackAsync(context.CancellationToken);
             throw;
         }
+    }
+
+    //mapeo explicito para enum
+    private Holdings.Domain.Enums.TransactionType MapTransactionType(
+     EventBus.Messages.Events.TransactionType type)
+    {
+        return type switch
+        {
+            EventBus.Messages.Events.TransactionType.BUY
+                => Holdings.Domain.Enums.TransactionType.BUY,
+
+            EventBus.Messages.Events.TransactionType.SELL
+                => Holdings.Domain.Enums.TransactionType.SELL,
+
+            _ => throw new ArgumentOutOfRangeException(nameof(type))
+        };
     }
 }

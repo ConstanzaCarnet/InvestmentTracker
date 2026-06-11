@@ -14,19 +14,27 @@ namespace Transactions.Application.DTOs;
 */
 public record TransactionDto
 {
-    public Guid Id;
-    public string Ticker;
-    public decimal Quantity;
-    public decimal Price;
-    public decimal ExchangeRate;
-    public decimal Ratio;
-    public string Currency;
-    public decimal totalAmount;
-    public DateTime TransactionDate;
-    public string Type; // "Buy" o "Sell"
+    public Guid Id { get; init; }
+    public string Ticker { get; init; }
+    public decimal Quantity { get; init; }
+    public decimal Price { get; init; }
+    public decimal ExchangeRate { get; init; }
+    public decimal Ratio { get; init; }
+    public string Currency { get; init; }
+    public decimal TotalAmount { get; init; }
+    public DateTime TransactionDate { get; init; }
+    public string Type { get; init; }
 
-    //constructor para mapear desde la entidad Transaction
-    public TransactionDto(Guid id, string ticker, decimal quantity, decimal price, decimal exchangeRate, decimal ratio, string currency, DateTime transactionDate, string type)
+    public TransactionDto(
+        Guid id,
+        string ticker,
+        decimal quantity,
+        decimal price,
+        decimal exchangeRate,
+        decimal ratio,
+        string currency,
+        DateTime transactionDate,
+        string type)
     {
         Id = id;
         Ticker = ticker;
@@ -35,7 +43,7 @@ public record TransactionDto
         ExchangeRate = exchangeRate;
         Ratio = ratio;
         Currency = currency;
-        totalAmount = quantity * price * exchangeRate; // calculamos el monto total considerando el tipo de cambio
+        TotalAmount = quantity * price * exchangeRate;
         TransactionDate = transactionDate;
         Type = type;
     }

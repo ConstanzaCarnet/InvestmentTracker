@@ -52,10 +52,7 @@ public class Position
     public void ValidateAndApplySequence(long sequence, DateTime createdAt)
     {
         if (sequence <= LastProcessedSequenceNumber)
-            throw new InvalidOperationException("Duplicate or old event");
-
-        if (sequence != LastProcessedSequenceNumber + 1)
-            throw new InvalidOperationException("Out of order event");
+            throw new InvalidOperationException($"Duplicate or old event. Received: {sequence}, Last processed: {LastProcessedSequenceNumber}");
 
         LastProcessedSequenceNumber = sequence;
         LastTransactionDate = createdAt;

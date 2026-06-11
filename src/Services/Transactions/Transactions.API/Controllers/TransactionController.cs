@@ -1,9 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Transactions.Domain.Entities;
 using Transactions.Application.Interfaces;
 using Transactions.Application.DTOs;
-using MassTransit;
-using EventBus.Messages.Events;
 
 namespace Transactions.API.Controllers;
 
@@ -11,61 +8,78 @@ namespace Transactions.API.Controllers;
 [Route("api/[controller]")]
 public class TransactionController : ControllerBase
 {
-    private readonly ITransactionService _transactionService;
+    private readonly ITransactionService _service;
 
     public TransactionController(ITransactionService service)
     {
-        _transactionService = service;
+        _service = service;
     }
 
+    /// <summary>Records a buy transaction for the given instrument.</summary>
     [HttpPost("buy")]
-    public async Task<IActionResult> Buy(BuyRequest request)
+    [ProducesResponseType(typeof(TransactionDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Buy([FromBody] BuyRequest request)
     {
-        var result = await _transactionService.BuyAsync(request);
-        return Ok(result);
+        var result = await _service.BuyAsync(request);
+        return StatusCode(StatusCodes.Status201Created, result);
     }
 
+    /// <summary>Records a sell transaction for the given instrument.</summary>
     [HttpPost("sell")]
-    public async Task<IActionResult> Sell(SellRequest request)
+    [ProducesResponseType(typeof(TransactionDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Sell([FromBody] SellRequest request)
     {
-        var result = await _transactionService.SellAsync(request);
-        return Ok(result);
+        var result = await _service.SellAsync(request);
+        return StatusCode(StatusCodes.Status201Created, result);
     }
 
-    [HttpGet("user/{userId}")]
+    /// <summary>Returns the full transaction history for a user.</summary>
+    [HttpGet("user/{userId:guid}")]
+    [ProducesResponseType(typeof(IEnumerable<TransactionDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUserTransactions(Guid userId)
     {
-        var history = await _transactionService.GetTransactionHistoryAsync(userId);
+        var history = await _service.GetTransactionHistoryAsync(userId);
         return Ok(history);
     }
 
-    //busqueda por ticker segun usuario
-    [HttpGet("user/{userId}/instrument/{instrumentId}")]
-    public async Task<IActionResult> GetUserTransactionsByTicker(Guid userId, Guid instrumentId)
+    /// <summary>Returns transactions for a specific user and instrument.</summary>
+    [HttpGet("user/{userId:guid}/instrument/{instrumentId:guid}")]
+    [ProducesResponseType(typeof(IEnumerable<TransactionDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetUserTransactionsByInstrument(Guid userId, Guid instrumentId)
     {
-        var transactions = await _transactionService.GetTransactionHistoryByTickerAsync(userId, instrumentId);
+        var transactions = await _service.GetTransactionHistoryByTickerAsync(userId, instrumentId);
         return Ok(transactions);
     }
 
-    //busqueda por fecha segun usuario
-    [HttpGet("user/{userId}/date/{date}")]
+    /// <summary>Returns transactions for a specific user on a given date.</summary>
+    [HttpGet("user/{userId:guid}/date/{date}")]
+    [ProducesResponseType(typeof(IEnumerable<TransactionDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUserTransactionsByDate(Guid userId, DateTime date)
     {
-        var transactions = await _transactionService.GetTransactionHistoryByDateAsync(userId, date);
+        var transactions = await _service.GetTransactionHistoryByDateAsync(userId, date);
         return Ok(transactions);
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, TransactionRequest request)
+    /// <summary>Updates an existing transaction. Ticker must be a valid, active instrument.</summary>
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(Guid id, [FromBody] TransactionRequest request)
     {
-        var result = await _transactionService.UpdateTransactionAsync(id, request);
-        return result.Success ? Ok(result.Message) : NotFound(result.Message);
+        var (success, message) = await _service.UpdateTransactionAsync(id, request);
+        return success ? Ok(message) : NotFound(message);
     }
 
-    [HttpDelete("{id}")]
+    /// <summary>Deletes a transaction and publishes a reversal event to Holdings.</summary>
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var result = await _transactionService.DeleteTransactionAsync(id);
-        return result.Success ? Ok(result.Message) : NotFound(result.Message);
+        var (success, message) = await _service.DeleteTransactionAsync(id);
+        return success ? Ok(message) : NotFound(message);
     }
 }

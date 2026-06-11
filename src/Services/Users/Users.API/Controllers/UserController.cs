@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Users.Application.DTOs;
 using Users.Application.Interfaces;
-using Users.Application.Services;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -15,49 +14,46 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateUser(UserCreateDto dto)
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> CreateUser([FromBody] UserCreateDto dto)
     {
         var id = await _service.CreateUserAsync(dto);
-
-        return Ok(new
-        {
-            Id = id,
-            Message = "Usuario creado con éxito"
-        });
+        return StatusCode(StatusCodes.Status201Created, new { id, message = "Usuario creado con Ã©xito." });
     }
 
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<UserDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
     {
         var users = await _service.GetAllAsync();
-
         return Ok(users);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Get(Guid id)
     {
         var user = await _service.GetByIdAsync(id);
-
-        if (user == null)
-            return NotFound();
-
-        return Ok(user);
+        return user is null ? NotFound() : Ok(user);
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, UserUpdateDto dto)
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UserUpdateDto dto)
     {
         await _service.UpdateAsync(id, dto);
-
         return NoContent();
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(Guid id)
     {
         await _service.DeleteAsync(id);
-
         return NoContent();
     }
 }

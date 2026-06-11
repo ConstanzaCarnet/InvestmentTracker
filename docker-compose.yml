@@ -44,6 +44,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: 8080
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
       ConnectionStrings__DefaultConnection: Server=users-db;Database=UsersDb;User Id=sa;Password=WalletPassword123!;TrustServerCertificate=True;
       EventBusSettings__HostAddress: rabbitmq://rabbitmq
     volumes:
@@ -69,6 +70,7 @@ services:
       ASPNETCORE_HTTP_PORTS: 8080
       ConnectionStrings__DefaultConnection: Server=users-db;Database=HoldingsDb;User Id=sa;Password=WalletPassword123!;TrustServerCertificate=True;
       EventBusSettings__HostAddress: rabbitmq://rabbitmq
+      Services__MarketData: http://marketdata-service:8080
     volumes:
       - .:/src
     working_dir: /src/src/Services/Holdings/Holdings.API
@@ -76,6 +78,7 @@ services:
     depends_on:
       - rabbitmq
       - users-db
+      - marketdata-service
     networks:
       - investment-network
 
@@ -90,6 +93,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: 8080
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
       ConnectionStrings__TransactionConnectionString: Server=users-db;Database=TransactionDb;User Id=sa;Password=WalletPassword123!;TrustServerCertificate=True;
       EventBusSettings__HostAddress: rabbitmq://rabbitmq
     volumes:
@@ -113,10 +117,14 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: 8080
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+      EventBusSettings__HostAddress: rabbitmq://rabbitmq
     volumes:
       - .:/src
     working_dir: /src/src/Services/MarketData/MarketData.API
     command: dotnet watch run --urls=http://0.0.0.0:8080
+    depends_on:
+      - rabbitmq
     networks:
       - investment-network
 

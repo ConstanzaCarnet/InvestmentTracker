@@ -25,6 +25,5 @@
 	  <ProjectReference Include="..\Users.Infrastructure\Users.Infrastructure.csproj" />
 	  <ProjectReference Include="..\Users.Application\Users.Application.csproj" />
 	  <ProjectReference Include="..\..\..\BuildingBlocks\EventBus.Messages\EventBus.Messages.csproj" />
-	  <ProjectReference Include="..\Users.Infrastructure\Users.Infrastructure.csproj" />
 	</ItemGroup>
 </Project>

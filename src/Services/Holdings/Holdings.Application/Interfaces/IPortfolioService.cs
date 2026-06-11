@@ -1,6 +1,6 @@
 using Holdings.Application.DTOs;
 
-namespace Holdings.Domain.Interfaces;
+namespace Holdings.Application.Interfaces;
 
 public interface IPortfolioService
 {

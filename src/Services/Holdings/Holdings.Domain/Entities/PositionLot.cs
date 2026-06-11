@@ -1,5 +1,5 @@
 namespace Holdings.Domain.Entities;
-using EventBus.Messages.Events;
+using Holdings.Domain.Enums;
 
 public class PositionLot
 {

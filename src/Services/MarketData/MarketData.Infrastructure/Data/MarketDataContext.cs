@@ -1,4 +1,3 @@
-using System.Transactions;
 using Microsoft.EntityFrameworkCore;
 using MarketData.Domain.Entities;
 
@@ -14,11 +13,10 @@ public class MarketDataContext : DbContext
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
 		base.OnModelCreating(modelBuilder);
-		// Configuración de la entidad Price
-		modelBuilder.Entity<Instruments>(Instruments =>
+		modelBuilder.Entity<Instrument>(instrument =>
 		{
-			Instruments.HasKey(x => x.Id);
-			Instruments.HasIndex(x => x.Ticker).IsUnique();
+			instrument.HasKey(x => x.Id);
+			instrument.HasIndex(x => x.Ticker).IsUnique();
 		});
 	}
 }

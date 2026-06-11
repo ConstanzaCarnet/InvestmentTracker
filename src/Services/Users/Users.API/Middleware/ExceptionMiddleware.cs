@@ -1,7 +1,7 @@
 using System.Net;
-using Transactions.Domain.Exceptions;
+using Users.Domain.Exceptions;
 
-namespace Transactions.API.Middleware;
+namespace Users.API.Middleware;
 
 public class ExceptionMiddleware
 {
@@ -24,18 +24,17 @@ public class ExceptionMiddleware
         }
         catch (DomainException ex)
         {
-            // Business rule violations: invalid ticker, insufficient quantity, etc.
             _logger.LogWarning("Domain rule violation: {Message}", ex.Message);
 
-            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            context.Response.StatusCode = ex.StatusCode;
             context.Response.ContentType = "application/json";
 
             await context.Response.WriteAsJsonAsync(new
             {
-                type    = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-                title   = "Bad Request",
-                status  = 400,
-                detail  = ex.Message
+                type   = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                title  = ex.StatusCode == 409 ? "Conflict" : "Bad Request",
+                status = ex.StatusCode,
+                detail = ex.Message
             });
         }
         catch (Exception ex)

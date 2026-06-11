@@ -3,6 +3,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Transactions.Infrastructure.Data;
 using Transactions.Infrastructure.Outbox;
+using EventBus.Messages.Events;
 
 namespace Transactions.API.BackgroundServices;
 
@@ -61,7 +62,7 @@ public class OutboxPublisherService : BackgroundService
                         await publisher.Publish(deserialized, stoppingToken);
 
                         message.ProcessedOnUtc = DateTime.UtcNow;
-                        //en este caso guardo por cada mensaje procesado, así evito problemas de concurrencia
+                        //en este caso guardo por cada mensaje procesado, asï¿½ evito problemas de concurrencia
                         await dbContext.SaveChangesAsync(stoppingToken);
                         dbContext.ChangeTracker.Clear();
                     }
@@ -81,12 +82,15 @@ public class OutboxPublisherService : BackgroundService
         }
     }
 
-    private static Type? ResolveType(string typeName)
+    // Mapa explÃ­cito para evitar problemas de lazy loading de assemblies.
+    private static readonly Dictionary<string, Type> _eventTypes = new()
     {
-        return AppDomain.CurrentDomain
-            .GetAssemblies()
-            .SelectMany(a => a.GetTypes())
-            .FirstOrDefault(t => t.Name == typeName);
-    }
+        [nameof(TransactionCreatedEvent)] = typeof(TransactionCreatedEvent),
+        [nameof(TransactionUpdatedEvent)] = typeof(TransactionUpdatedEvent),
+        [nameof(TransactionDeletedEvent)] = typeof(TransactionDeletedEvent),
+    };
+
+    private static Type? ResolveType(string typeName) =>
+        _eventTypes.GetValueOrDefault(typeName);
 
 }

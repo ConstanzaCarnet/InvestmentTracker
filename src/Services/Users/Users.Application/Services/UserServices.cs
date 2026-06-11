@@ -1,6 +1,8 @@
+using System.Security.Cryptography;
 using Users.Application.DTOs;
 using Users.Application.Interfaces;
 using Users.Domain.Entities;
+using Users.Domain.Exceptions;
 using MassTransit;
 using EventBus.Messages.Events;
 
@@ -24,9 +26,9 @@ public class UserService : IUserService
         var existingUser = await _repository.GetByEmailAsync(dto.Email);
 
         if (existingUser != null)
-            throw new Exception("Email already registered");
+            throw new DomainException("Email already registered.", statusCode: 409);
 
-        var passwordHash = $"hashed_{dto.Password}";
+        var passwordHash = HashPassword(dto.Password);
 
         var user = new User(dto.Email, dto.FirstName, dto.LastName, passwordHash);
 
@@ -77,10 +79,10 @@ public class UserService : IUserService
         var user = await _repository.GetByIdAsync(id);
 
         if (user == null)
-            throw new Exception("User not found");
+            throw new DomainException("User not found.", statusCode: 404);
 
         user.UpdateInfo(dto.FirstName, dto.LastName);
-        user.UpdatePassword(dto.Password);
+        user.UpdatePassword(HashPassword(dto.Password));
 
         await _repository.UpdateAsync(user);
         await _repository.SaveChangesAsync();
@@ -91,7 +93,7 @@ public class UserService : IUserService
         var user = await _repository.GetByIdAsync(id);
 
         if (user == null)
-            throw new Exception("User not found");
+            throw new DomainException("User not found.", statusCode: 404);
 
         await _repository.DeleteAsync(user);
         await _repository.SaveChangesAsync();
@@ -101,5 +103,14 @@ public class UserService : IUserService
             UserId = user.Id,
             Email = user.Email
         });
+    }
+
+    private static string HashPassword(string password)
+    {
+        byte[] salt = RandomNumberGenerator.GetBytes(16);
+        byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
+            password, salt, iterations: 350_000,
+            HashAlgorithmName.SHA512, outputLength: 32);
+        return $"{Convert.ToBase64String(salt)}:{Convert.ToBase64String(hash)}";
     }
 }

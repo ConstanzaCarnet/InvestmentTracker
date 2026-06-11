@@ -4,7 +4,7 @@ public class Account
 {
     public Guid AccountId { get; set; }
     public Guid UserId { get; set; }
-    public string AccountNumber { get; private set; }
+    public string? AccountNumber { get; private set; }
     public decimal CashBalance { get; set; } // Temporal
 
     public Account(Guid userId)

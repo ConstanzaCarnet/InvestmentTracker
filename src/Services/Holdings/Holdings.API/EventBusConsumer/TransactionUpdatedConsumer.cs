@@ -2,6 +2,7 @@
 using Holdings.Application.Interfaces;
 using Holdings.Domain.Entities;
 using Holdings.Infrastructure.Data;
+using Holdings.Domain.Enums;
 using Holdings.Application.Helpers;
 using MassTransit;
 
@@ -37,7 +38,7 @@ public class TransactionUpdatedConsumer : IConsumer<TransactionUpdatedEvent>
 
             var instrumentChanged = message.InstrumentId != message.PreviousInstrumentId;
 
-            // 🔵 1. REVERTIR
+            //  1. REVERTIR
             var oldPosition = await _repository.GetPositionAsync(
                 message.UserId,
                 message.PreviousInstrumentId);
@@ -51,7 +52,7 @@ public class TransactionUpdatedConsumer : IConsumer<TransactionUpdatedEvent>
                     message.PreviousPrice,
                     message.PreviousConversionRatio,
                     message.PreviousExchangeRate,
-                    message.PreviousType
+                    TransactionTypeMapper.ToDomain(message.PreviousType)
                 );
 
                 if (!oldPosition.Lots.Any())
@@ -60,7 +61,7 @@ public class TransactionUpdatedConsumer : IConsumer<TransactionUpdatedEvent>
                     _repository.UpdatePosition(oldPosition);
             }
 
-            // 🔵 2. APLICAR NUEVO
+            //  2. APLICAR NUEVO
             var targetInstrumentId = instrumentChanged
                 ? message.InstrumentId
                 : message.PreviousInstrumentId;
@@ -69,49 +70,33 @@ public class TransactionUpdatedConsumer : IConsumer<TransactionUpdatedEvent>
                 message.UserId,
                 targetInstrumentId);
 
-            if (position == null)
-            {
-                position = new Position(
-                    message.UserId,
-                    targetInstrumentId,
-                    newTicker
-                );
+            var isNew = position == null;
 
+            if (isNew)
+            {
+                position = new Position(message.UserId, targetInstrumentId, newTicker);
                 await _repository.AddPositionAsync(position);
             }
 
             //  VALIDACIÓN GLOBAL (una sola vez)
-            position.ValidateAndApplySequence(
-                message.SequenceNumber,
-                message.CreatedAt
-            );
+            position!.ValidateAndApplySequence(message.SequenceNumber, message.CreatedAt);
 
             var lot = position.GetOrCreateLot(message.Currency);
 
-            if (message.Type == TransactionType.BUY)
+            if (message.Type == EventBus.Messages.Events.TransactionType.BUY)
             {
-                lot.Buy(
-                    message.Quantity,
-                    message.Price,
-                    message.ConversionRatio,
-                    message.ExchangeRate
-                );
+                lot.Buy(message.Quantity, message.Price, message.ConversionRatio, message.ExchangeRate);
             }
             else
             {
-                var shouldDeleteLot = lot.Sell(
-                    message.Quantity,
-                    message.Price,
-                    message.ConversionRatio
-                );
-
+                var shouldDeleteLot = lot.Sell(message.Quantity, message.Price, message.ConversionRatio);
                 if (shouldDeleteLot)
                     position.RemoveLot(lot);
             }
 
             if (!position.Lots.Any())
                 _repository.RemovePosition(position);
-            else
+            else if (!isNew)
                 _repository.UpdatePosition(position);
 
             await _context.SaveChangesAsync(context.CancellationToken);

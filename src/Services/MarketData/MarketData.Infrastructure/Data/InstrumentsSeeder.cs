@@ -1,11 +1,12 @@
-using CsvHelper;
 using System.Globalization;
+using CsvHelper;
 using MarketData.Domain.Entities;
+
 namespace MarketData.Infrastructure.Data;
 
 public static class InstrumentsSeeder
 {
-    public static async Task SeedAsync(TransactionDbContext context)
+    public static async Task SeedAsync(MarketDataContext context)
     {
         if (context.Instruments.Any())
             return;

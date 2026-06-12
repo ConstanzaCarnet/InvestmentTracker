@@ -72,7 +72,7 @@ public class TransactionController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(Guid id, [FromBody] TransactionRequest request)
     {
-        var (success, message) = await _service.UpdateTransactionAsync(id, request);
+        var (success, message) = await _service.UpdateTransactionAsync(User.GetUserId(), id, request);
         return success ? Ok(message) : NotFound(message);
     }
 
@@ -82,7 +82,7 @@ public class TransactionController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var (success, message) = await _service.DeleteTransactionAsync(id);
+        var (success, message) = await _service.DeleteTransactionAsync(User.GetUserId(), id);
         return success ? Ok(message) : NotFound(message);
     }
 }

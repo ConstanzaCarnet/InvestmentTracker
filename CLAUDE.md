@@ -160,7 +160,7 @@ Users **issues** JWT bearer tokens; Holdings and Transactions **validate** them 
 - **DTO gotcha (.NET 9):** request DTOs with validation must be **records with properties** (like `BuyRequest`), NOT positional records with `[property: Required]` — the latter throws at runtime: *"validation metadata must be associated with the constructor parameter."*
 - **userId from the token, not the body:** protected controllers take the caller id from `User.GetUserId()`, never from the request. `BuyRequest`/`SellRequest` no longer carry `UserId`. "Current user" endpoints use `/me` routes: `GET /api/v1/portfolio/me`, `GET /api/transaction/me`, `/me/instrument/{id}`, `/me/date/{date}`.
 - **Two `JwtSettings`:** one in `Users.Infrastructure` (to ISSUE tokens) and one in `Common.Authentication` (to VALIDATE) — intentional, so `Users.Infrastructure` stays free of an ASP.NET Core dependency.
-- **Ownership:** `[Authorize]` only proves *authenticated*, not *owner*. Endpoints acting on a resource by id (e.g. Transactions `Update`/`Delete`) must additionally check the resource's `UserId` against `User.GetUserId()`.
+- **Ownership:** `[Authorize]` only proves *authenticated*, not *owner*. Endpoints acting on a resource by id must also check the resource's `UserId` against `User.GetUserId()`. Transactions `Update`/`Delete` do this and return **404** (not 403) when the row belongs to someone else, so they don't leak its existence.
 
 ## Docker on Windows — known issues
 

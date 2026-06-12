@@ -181,16 +181,18 @@ public class TransactionService : ITransactionService
     //  UPDATE
     // ─────────────────────────────────────────────────────────────
 
-    public async Task<(bool Success, string Message)> UpdateTransactionAsync(Guid id, TransactionRequest request)
+    public async Task<(bool Success, string Message)> UpdateTransactionAsync(Guid userId, Guid id, TransactionRequest request)
     {
-        ValidateUserId(request.UserId);
+        ValidateUserId(userId);
 
         await using var dbTransaction = await _context.Database.BeginTransactionAsync();
 
         try
         {
             var transaction = await _repository.GetByIdAsync(id);
-            if (transaction is null)
+            // Ownership: treat "not yours" the same as "not found" so we don't reveal
+            // that another user's transaction exists.
+            if (transaction is null || transaction.UserId != userId)
                 return (false, "Transaction not found.");
 
             // Validate the ticker — reject unknown instruments even on update.
@@ -275,14 +277,15 @@ public class TransactionService : ITransactionService
     //  DELETE
     // ─────────────────────────────────────────────────────────────
 
-    public async Task<(bool Success, string Message)> DeleteTransactionAsync(Guid id)
+    public async Task<(bool Success, string Message)> DeleteTransactionAsync(Guid userId, Guid id)
     {
         await using var dbTransaction = await _context.Database.BeginTransactionAsync();
 
         try
         {
             var transaction = await _repository.GetByIdAsync(id);
-            if (transaction is null)
+            // Ownership: treat "not yours" the same as "not found".
+            if (transaction is null || transaction.UserId != userId)
                 return (false, "Transaction not found.");
 
             _repository.Remove(transaction);

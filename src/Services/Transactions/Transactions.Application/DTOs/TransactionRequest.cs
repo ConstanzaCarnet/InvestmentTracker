@@ -5,9 +5,7 @@ namespace Transactions.Application.DTOs;
 
 public record TransactionRequest
 {
-    [Required]
-    public Guid UserId { get; init; }
-
+    // UserId ya no viaja en el body: se toma del JWT y se valida la propiedad.
     [Required]
     [MinLength(1)]
     [MaxLength(20)]

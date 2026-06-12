@@ -10,6 +10,6 @@ public interface ITransactionService
     Task<IEnumerable<TransactionDto>> GetTransactionHistoryAsync(Guid userId);
     Task<IEnumerable<TransactionDto>> GetTransactionHistoryByTickerAsync(Guid userId, Guid instrumentId);
     Task<IEnumerable<TransactionDto>> GetTransactionHistoryByDateAsync(Guid userId, DateTime date);
-    Task<(bool Success, string Message)> UpdateTransactionAsync(Guid id, TransactionRequest request);
-    Task<(bool Success, string Message)> DeleteTransactionAsync(Guid id);
+    Task<(bool Success, string Message)> UpdateTransactionAsync(Guid userId, Guid id, TransactionRequest request);
+    Task<(bool Success, string Message)> DeleteTransactionAsync(Guid userId, Guid id);
 }

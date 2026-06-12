@@ -28,5 +28,6 @@
 	<ProjectReference Include="..\Holdings.Application\Holdings.Application.csproj" />
 	<ProjectReference Include="..\Holdings.Infrastructure\Holdings.Infrastructure.csproj" />
 	<ProjectReference Include="..\..\..\BuildingBlocks\EventBus.Messages\EventBus.Messages.csproj" />
+	<ProjectReference Include="..\..\..\BuildingBlocks\Common.Authentication\Common.Authentication.csproj" />
   </ItemGroup>
 </Project>

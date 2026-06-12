@@ -1,0 +1,13 @@
+namespace Common.Authentication;
+
+// POCO compartido que mapea la sección "Jwt". Para que un servicio valide los
+// tokens que Users emite, su Key/Issuer/Audience deben ser IDÉNTICOS.
+public class JwtSettings
+{
+    public const string SectionName = "Jwt";
+
+    public string Key { get; set; } = string.Empty;
+    public string Issuer { get; set; } = string.Empty;
+    public string Audience { get; set; } = string.Empty;
+    public int ExpiryMinutes { get; set; } = 60;
+}

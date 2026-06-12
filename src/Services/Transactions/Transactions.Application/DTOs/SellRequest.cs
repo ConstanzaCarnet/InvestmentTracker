@@ -5,9 +5,7 @@ namespace Transactions.Application.DTOs;
 
 public record SellRequest
 {
-    [Required]
-    public Guid UserId { get; set; }
-
+    // UserId ya no viaja en el body: se toma del JWT del que hace la request.
     [Required]
     [MinLength(1, ErrorMessage = "Ticker is required.")]
     [MaxLength(20, ErrorMessage = "Ticker must be 20 characters or fewer.")]

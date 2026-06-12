@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Common.Authentication;
 using Holdings.Application.Interfaces;
 using Holdings.Application.DTOs;
 
 namespace Holdings.API.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/[controller]")]
 public class PortfolioController : ControllerBase
 {
@@ -19,9 +22,11 @@ public class PortfolioController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet("{userId}")]
-    public async Task<ActionResult<PortfolioDto>> GetPortfolio(Guid userId)
+    /// <summary>Returns the portfolio of the authenticated user (from the JWT, not the route).</summary>
+    [HttpGet("me")]
+    public async Task<ActionResult<PortfolioDto>> GetMyPortfolio()
     {
+        var userId = User.GetUserId();
         try
         {
             var portfolio = await _portfolioService.GetPortfolioAsync(userId);

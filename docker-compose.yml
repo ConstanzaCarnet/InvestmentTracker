@@ -77,6 +77,11 @@ services:
       ConnectionStrings__DefaultConnection: Server=users-db;Database=HoldingsDb;User Id=sa;Password=WalletPassword123!;TrustServerCertificate=True;
       EventBusSettings__HostAddress: rabbitmq://rabbitmq
       Services__MarketData: http://marketdata-service:8080
+      # MISMO secreto/issuer/audience que users-service: así valida sus tokens.
+      Jwt__Key: "docker-dev-secret-please-rotate-in-prod-0123456789abcdef"
+      Jwt__Issuer: "InvestmentTracker.Users"
+      Jwt__Audience: "InvestmentTracker.Clients"
+      Jwt__ExpiryMinutes: "60"
     volumes:
       - .:/src
     working_dir: /src/src/Services/Holdings/Holdings.API
@@ -102,6 +107,11 @@ services:
       DOTNET_USE_POLLING_FILE_WATCHER: "true"
       ConnectionStrings__TransactionConnectionString: Server=users-db;Database=TransactionDb;User Id=sa;Password=WalletPassword123!;TrustServerCertificate=True;
       EventBusSettings__HostAddress: rabbitmq://rabbitmq
+      # MISMO secreto/issuer/audience que users-service: así valida sus tokens.
+      Jwt__Key: "docker-dev-secret-please-rotate-in-prod-0123456789abcdef"
+      Jwt__Issuer: "InvestmentTracker.Users"
+      Jwt__Audience: "InvestmentTracker.Clients"
+      Jwt__ExpiryMinutes: "60"
     volumes:
       - .:/src
     working_dir: /src/src/Services/Transactions/Transactions.API

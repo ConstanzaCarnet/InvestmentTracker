@@ -9,6 +9,7 @@ using Holdings.Infrastructure.Data;
 using Holdings.Application.Interfaces;
 using Holdings.Application.Services;
 using Holdings.Infrastructure.Http;
+using Common.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Valida los JWT que emite Users (mismo Key/Issuer/Audience vía sección "Jwt").
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // --- 2. BASE DE DATOS Y REPOS ---
 builder.Services.AddDbContext<HoldingsDbContext>(options =>
@@ -94,7 +98,8 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseCors("AllowAll");
-app.UseAuthorization();
+app.UseAuthentication();   // lee y valida el token → rellena User.Claims
+app.UseAuthorization();    // evalúa [Authorize]
 app.MapControllers();
 
 app.Run();

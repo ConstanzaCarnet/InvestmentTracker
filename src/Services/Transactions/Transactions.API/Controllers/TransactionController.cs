@@ -1,10 +1,13 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Common.Authentication;
 using Transactions.Application.Interfaces;
 using Transactions.Application.DTOs;
 
 namespace Transactions.API.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class TransactionController : ControllerBase
 {
@@ -15,50 +18,50 @@ public class TransactionController : ControllerBase
         _service = service;
     }
 
-    /// <summary>Records a buy transaction for the given instrument.</summary>
+    /// <summary>Records a buy transaction for the authenticated user (userId from the JWT).</summary>
     [HttpPost("buy")]
     [ProducesResponseType(typeof(TransactionDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Buy([FromBody] BuyRequest request)
     {
-        var result = await _service.BuyAsync(request);
+        var result = await _service.BuyAsync(User.GetUserId(), request);
         return StatusCode(StatusCodes.Status201Created, result);
     }
 
-    /// <summary>Records a sell transaction for the given instrument.</summary>
+    /// <summary>Records a sell transaction for the authenticated user (userId from the JWT).</summary>
     [HttpPost("sell")]
     [ProducesResponseType(typeof(TransactionDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Sell([FromBody] SellRequest request)
     {
-        var result = await _service.SellAsync(request);
+        var result = await _service.SellAsync(User.GetUserId(), request);
         return StatusCode(StatusCodes.Status201Created, result);
     }
 
-    /// <summary>Returns the full transaction history for a user.</summary>
-    [HttpGet("user/{userId:guid}")]
+    /// <summary>Returns the authenticated user's full transaction history.</summary>
+    [HttpGet("me")]
     [ProducesResponseType(typeof(IEnumerable<TransactionDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetUserTransactions(Guid userId)
+    public async Task<IActionResult> GetMyTransactions()
     {
-        var history = await _service.GetTransactionHistoryAsync(userId);
+        var history = await _service.GetTransactionHistoryAsync(User.GetUserId());
         return Ok(history);
     }
 
-    /// <summary>Returns transactions for a specific user and instrument.</summary>
-    [HttpGet("user/{userId:guid}/instrument/{instrumentId:guid}")]
+    /// <summary>Returns the authenticated user's transactions for a specific instrument.</summary>
+    [HttpGet("me/instrument/{instrumentId:guid}")]
     [ProducesResponseType(typeof(IEnumerable<TransactionDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetUserTransactionsByInstrument(Guid userId, Guid instrumentId)
+    public async Task<IActionResult> GetMyTransactionsByInstrument(Guid instrumentId)
     {
-        var transactions = await _service.GetTransactionHistoryByTickerAsync(userId, instrumentId);
+        var transactions = await _service.GetTransactionHistoryByTickerAsync(User.GetUserId(), instrumentId);
         return Ok(transactions);
     }
 
-    /// <summary>Returns transactions for a specific user on a given date.</summary>
-    [HttpGet("user/{userId:guid}/date/{date}")]
+    /// <summary>Returns the authenticated user's transactions on a given date.</summary>
+    [HttpGet("me/date/{date}")]
     [ProducesResponseType(typeof(IEnumerable<TransactionDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetUserTransactionsByDate(Guid userId, DateTime date)
+    public async Task<IActionResult> GetMyTransactionsByDate(DateTime date)
     {
-        var transactions = await _service.GetTransactionHistoryByDateAsync(userId, date);
+        var transactions = await _service.GetTransactionHistoryByDateAsync(User.GetUserId(), date);
         return Ok(transactions);
     }
 

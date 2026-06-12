@@ -69,11 +69,11 @@ public class TransactionService : ITransactionService
     //  BUY / SELL
     // ─────────────────────────────────────────────────────────────
 
-    public Task<TransactionDto> BuyAsync(BuyRequest request)
+    public Task<TransactionDto> BuyAsync(Guid userId, BuyRequest request)
     {
-        ValidateUserId(request.UserId);
+        ValidateUserId(userId);
         return CreateTransactionInternalAsync(
-            request.UserId,
+            userId,
             request.Ticker,
             request.Quantity,
             request.Price,
@@ -82,11 +82,11 @@ public class TransactionService : ITransactionService
             DomainTransactionType.BUY);
     }
 
-    public Task<TransactionDto> SellAsync(SellRequest request)
+    public Task<TransactionDto> SellAsync(Guid userId, SellRequest request)
     {
-        ValidateUserId(request.UserId);
+        ValidateUserId(userId);
         return CreateTransactionInternalAsync(
-            request.UserId,
+            userId,
             request.Ticker,
             request.Quantity,
             request.Price,

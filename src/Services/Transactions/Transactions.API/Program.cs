@@ -7,6 +7,7 @@ using Transactions.API.Extensions;
 using Transactions.API.Services;
 using Transactions.API.Middleware;
 using Transactions.API.BackgroundServices;
+using Common.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 var eventBusSettings = builder.Configuration.GetSection("EventBusSettings");
@@ -14,6 +15,9 @@ var hostAddress = eventBusSettings["HostAddress"];
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddOpenApi();
+
+// Valida los JWT que emite Users (mismo Key/Issuer/Audience vía sección "Jwt").
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.AddDbContext<TransactionDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TransactionConnectionString")));
@@ -35,7 +39,7 @@ builder.Services.AddMassTransit(config =>
     {
         if (string.IsNullOrEmpty(hostAddress))
         {
-            throw new InvalidOperationException("RabbitMQ HostAddress no est� configurado en appsettings o variables de entorno.");
+            throw new InvalidOperationException("RabbitMQ HostAddress no est� configurado en appsettings o variables de entorno.");
         }
         cfg.Host(hostAddress);
         cfg.ConfigureEndpoints(ctx);
@@ -57,7 +61,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<ExceptionMiddleware>();
-app.UseAuthorization();
+app.UseAuthentication();   // lee y valida el token → rellena User.Claims
+app.UseAuthorization();    // evalúa [Authorize]
 app.MapControllers();
 //app.UseHttpsRedirection();
 app.Run();

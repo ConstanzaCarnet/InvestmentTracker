@@ -143,9 +143,13 @@ All new request DTOs should follow the same pattern.
 
 `TransactionService.ValidateAndGetInstrumentAsync` normalises the ticker on the application side (`Trim().ToUpperInvariant()`) before querying — never apply functions to the DB column or the unique index on `Ticker` won't be used. Throws `DomainException` (→ 400) for unknown or inactive tickers. This validation also runs on `UpdateTransactionAsync`.
 
-## Authentication (JWT) — Users service
+## Authentication (JWT) — platform-wide
 
-Users issues JWT bearer tokens. Other services are meant to validate them with the **same key** — no call back to Users — which is why the secret/issuer/audience must be shared identically across services.
+Users **issues** JWT bearer tokens; Holdings and Transactions **validate** them with the same key (no call back to Users). MarketData is intentionally left **open** (Holdings calls it server-to-server). The secret/issuer/audience must be identical across all services that validate.
+
+**Shared helper:** `src/BuildingBlocks/Common.Authentication` (referenced by `Holdings.API` & `Transactions.API`) provides:
+- `services.AddJwtAuthentication(config)` — registers the JwtBearer scheme + `TokenValidationParameters` from the `Jwt` section. Call it, then `app.UseAuthentication()` **before** `app.UseAuthorization()`.
+- `User.GetUserId()` — `ClaimsPrincipal` extension that reads the `sub`/`NameIdentifier` claim as a `Guid`.
 
 - **Login:** `POST /api/auth/login` (`AuthController`, public) → `AuthResponseDto { accessToken, expiresAtUtc, userId, email }`.
 - **Password hashing:** PBKDF2-SHA512, 350k iterations, random salt, stored as `base64(salt):base64(hash)`. `UserService.HashPassword` / `VerifyPassword` are mirrors — they must use identical params or verification never matches. Verify compares with `CryptographicOperations.FixedTimeEquals` (constant-time).
@@ -154,6 +158,9 @@ Users issues JWT bearer tokens. Other services are meant to validate them with t
 - **Config:** section `Jwt { Key, Issuer, Audience, ExpiryMinutes }` in `appsettings.json` (dev) overridden by `Jwt__*` env vars in docker-compose. Key must be ≥32 chars (256-bit). In prod the key belongs in a secret manager, never the repo.
 - **Protecting endpoints:** add `[Authorize]`. Read the caller id with `User.FindFirstValue(ClaimTypes.NameIdentifier)` — JwtBearer remaps the `sub` claim to `ClaimTypes.NameIdentifier`. This is what will replace the `userId` currently passed via route/body.
 - **DTO gotcha (.NET 9):** request DTOs with validation must be **records with properties** (like `BuyRequest`), NOT positional records with `[property: Required]` — the latter throws at runtime: *"validation metadata must be associated with the constructor parameter."*
+- **userId from the token, not the body:** protected controllers take the caller id from `User.GetUserId()`, never from the request. `BuyRequest`/`SellRequest` no longer carry `UserId`. "Current user" endpoints use `/me` routes: `GET /api/v1/portfolio/me`, `GET /api/transaction/me`, `/me/instrument/{id}`, `/me/date/{date}`.
+- **Two `JwtSettings`:** one in `Users.Infrastructure` (to ISSUE tokens) and one in `Common.Authentication` (to VALIDATE) — intentional, so `Users.Infrastructure` stays free of an ASP.NET Core dependency.
+- **Ownership:** `[Authorize]` only proves *authenticated*, not *owner*. Endpoints acting on a resource by id (e.g. Transactions `Update`/`Delete`) must additionally check the resource's `UserId` against `User.GetUserId()`.
 
 ## Docker on Windows — known issues
 

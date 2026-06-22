@@ -175,3 +175,7 @@ Users **issues** JWT bearer tokens; Holdings and Transactions **validate** them 
 | `Services:MarketData` | `http://marketdata-service:8080` (via env var) | `http://localhost:5099` |
 
 MarketData runs on port `5099` locally (see `MarketData.API/Properties/launchSettings.json`).
+
+## Deployment
+
+The backend is deployed to Render's free tier, which spins down after ~15 min of inactivity. `.github/workflows/keep-alive.yml` pings `https://portfolio-backend-sp68.onrender.com/health` every 10 minutes (with cold-start retries) to keep it warm. Note: that `/health` endpoint and the Render service are configured outside this repo — there is no `/health` mapping in any service's `Program.cs` here.

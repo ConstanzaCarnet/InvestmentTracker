@@ -144,6 +144,32 @@ services:
     networks:
       - investment-network
 
+  # -----------------------------
+  # API GATEWAY (YARP)
+  # -----------------------------
+  api-gateway:
+    container_name: api-gateway
+    image: mcr.microsoft.com/dotnet/sdk:9.0
+    ports:
+      - "8000:8080"            # única puerta pública: host 8000 → gateway 8080
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+      # Sin JWT por ahora: cada servicio sigue validando su propio token (Opción B,
+      # defense in depth). Si más adelante validamos también acá, agregamos Jwt__*.
+    volumes:
+      - .:/src
+    working_dir: /src/src/ApiGateways/ApiGateway
+    command: dotnet watch run --urls=http://0.0.0.0:8080
+    depends_on:
+      - users-service
+      - holdings-service
+      - transactions-service
+      - marketdata-service
+    networks:
+      - investment-network
+
 # -----------------------------
 # NETWORK
 # -----------------------------

@@ -10,4 +10,9 @@
     <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Mismo helper que Holdings/Transactions: valida el JWT con la misma Key/Issuer/Audience. -->
+    <ProjectReference Include="..\..\BuildingBlocks\Common.Authentication\Common.Authentication.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -156,8 +156,12 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: 8080
       DOTNET_USE_POLLING_FILE_WATCHER: "true"
-      # Sin JWT por ahora: cada servicio sigue validando su propio token (Opción B,
-      # defense in depth). Si más adelante validamos también acá, agregamos Jwt__*.
+      # MISMO secreto/issuer/audience que users-service: el gateway rechaza temprano
+      # tokens inválidos en las rutas protegidas (Opción B: los servicios igual validan).
+      Jwt__Key: "docker-dev-secret-please-rotate-in-prod-0123456789abcdef"
+      Jwt__Issuer: "InvestmentTracker.Users"
+      Jwt__Audience: "InvestmentTracker.Clients"
+      Jwt__ExpiryMinutes: "60"
     volumes:
       - .:/src
     working_dir: /src/src/ApiGateways/ApiGateway

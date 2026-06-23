@@ -1,5 +1,7 @@
 version: '3.8'
-# con dotnet watch run, estamos aplicando tecnica hot reload, lo que significa que cada vez que hagamos un cambio en el codigo, el contenedor se reiniciara automaticamente y aplicara los cambios sin necesidad de reconstruir la imagen, esto es muy util para el desarrollo, pero no es recomendable para produccion, ya que puede generar problemas de rendimiento y estabilidad.
+# BASE = "como producción": cada servicio corre su imagen COMPILADA (Dockerfile
+# multi-stage), sin volúmenes ni dotnet watch. Para hot-reload en desarrollo ver
+# docker-compose.override.yml (se mergea solo con `docker compose up`).
 services:
 
   # -----------------------------
@@ -38,24 +40,19 @@ services:
   # -----------------------------
   users-service:
     container_name: users-service
-    image: mcr.microsoft.com/dotnet/sdk:9.0
+    build:
+      context: .
+      dockerfile: src/Services/Users/Users.API/Dockerfile
     # puerto NO publicado al host: accesible solo vía api-gateway por la red interna
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: 8080
-      DOTNET_USE_POLLING_FILE_WATCHER: "true"
       ConnectionStrings__DefaultConnection: Server=users-db;Database=UsersDb;User Id=sa;Password=WalletPassword123!;TrustServerCertificate=True;
       EventBusSettings__HostAddress: rabbitmq://rabbitmq
-      # JWT — el mismo secreto/issuer/audience deberá compartirse con los demás
-      # servicios cuando agreguemos [Authorize] allí (validan el token sin llamar a Users).
       Jwt__Key: "docker-dev-secret-please-rotate-in-prod-0123456789abcdef"
       Jwt__Issuer: "InvestmentTracker.Users"
       Jwt__Audience: "InvestmentTracker.Clients"
       Jwt__ExpiryMinutes: "60"
-    volumes:
-      - .:/src
-    working_dir: /src/src/Services/Users/Users.API
-    command: dotnet watch run --urls=http://0.0.0.0:8080
     depends_on:
       - rabbitmq
       - users-db
@@ -67,7 +64,9 @@ services:
   # -----------------------------
   holdings-service:
     container_name: holdings-service
-    image: mcr.microsoft.com/dotnet/sdk:9.0
+    build:
+      context: .
+      dockerfile: src/Services/Holdings/Holdings.API/Dockerfile
     # puerto NO publicado al host: accesible solo vía api-gateway por la red interna
     environment:
       ASPNETCORE_ENVIRONMENT: Development
@@ -75,15 +74,10 @@ services:
       ConnectionStrings__DefaultConnection: Server=users-db;Database=HoldingsDb;User Id=sa;Password=WalletPassword123!;TrustServerCertificate=True;
       EventBusSettings__HostAddress: rabbitmq://rabbitmq
       Services__MarketData: http://marketdata-service:8080
-      # MISMO secreto/issuer/audience que users-service: así valida sus tokens.
       Jwt__Key: "docker-dev-secret-please-rotate-in-prod-0123456789abcdef"
       Jwt__Issuer: "InvestmentTracker.Users"
       Jwt__Audience: "InvestmentTracker.Clients"
       Jwt__ExpiryMinutes: "60"
-    volumes:
-      - .:/src
-    working_dir: /src/src/Services/Holdings/Holdings.API
-    command: dotnet watch run --urls=http://0.0.0.0:8080
     depends_on:
       - rabbitmq
       - users-db
@@ -96,23 +90,19 @@ services:
   # -----------------------------
   transactions-service:
     container_name: transactions-service
-    image: mcr.microsoft.com/dotnet/sdk:9.0
+    build:
+      context: .
+      dockerfile: src/Services/Transactions/Transactions.API/Dockerfile
     # puerto NO publicado al host: accesible solo vía api-gateway por la red interna
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: 8080
-      DOTNET_USE_POLLING_FILE_WATCHER: "true"
       ConnectionStrings__TransactionConnectionString: Server=users-db;Database=TransactionDb;User Id=sa;Password=WalletPassword123!;TrustServerCertificate=True;
       EventBusSettings__HostAddress: rabbitmq://rabbitmq
-      # MISMO secreto/issuer/audience que users-service: así valida sus tokens.
       Jwt__Key: "docker-dev-secret-please-rotate-in-prod-0123456789abcdef"
       Jwt__Issuer: "InvestmentTracker.Users"
       Jwt__Audience: "InvestmentTracker.Clients"
       Jwt__ExpiryMinutes: "60"
-    volumes:
-      - .:/src
-    working_dir: /src/src/Services/Transactions/Transactions.API
-    command: dotnet watch run --urls=http://0.0.0.0:8080
     depends_on:
       - rabbitmq
       - users-db
@@ -142,23 +132,20 @@ services:
   # -----------------------------
   api-gateway:
     container_name: api-gateway
-    image: mcr.microsoft.com/dotnet/sdk:9.0
+    build:
+      context: .
+      dockerfile: src/ApiGateways/ApiGateway/Dockerfile
     ports:
       - "8000:8080"            # única puerta pública: host 8000 → gateway 8080
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: 8080
-      DOTNET_USE_POLLING_FILE_WATCHER: "true"
       # MISMO secreto/issuer/audience que users-service: el gateway rechaza temprano
       # tokens inválidos en las rutas protegidas (Opción B: los servicios igual validan).
       Jwt__Key: "docker-dev-secret-please-rotate-in-prod-0123456789abcdef"
       Jwt__Issuer: "InvestmentTracker.Users"
       Jwt__Audience: "InvestmentTracker.Clients"
       Jwt__ExpiryMinutes: "60"
-    volumes:
-      - .:/src
-    working_dir: /src/src/ApiGateways/ApiGateway
-    command: dotnet watch run --urls=http://0.0.0.0:8080
     depends_on:
       - users-service
       - holdings-service

@@ -3,12 +3,42 @@
 # Compose lo mergea AUTOMÁTICAMENTE sobre docker-compose.yml en `docker compose up`.
 # Reactiva el hot-reload (dotnet watch) para iterar cómodo.
 #
-#   docker compose up                      -> base + este override  (hot-reload)
+#   docker compose up                       -> base + este override  (hot-reload)
 #   docker compose -f docker-compose.yml up -> SOLO la base          (imagen compilada, "como prod")
 #
 # Truco: build.target apunta al stage "build" del Dockerfile (tiene el SDK y el
 # restore ya hecho); encima montamos el repo vivo y corremos dotnet watch.
 services:
+  users-service:
+    build:
+      target: build
+    environment:
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+    volumes:
+      - .:/workspace
+    working_dir: /workspace/src/Services/Users/Users.API
+    command: dotnet watch run --urls=http://0.0.0.0:8080
+
+  holdings-service:
+    build:
+      target: build
+    environment:
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+    volumes:
+      - .:/workspace
+    working_dir: /workspace/src/Services/Holdings/Holdings.API
+    command: dotnet watch run --urls=http://0.0.0.0:8080
+
+  transactions-service:
+    build:
+      target: build
+    environment:
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+    volumes:
+      - .:/workspace
+    working_dir: /workspace/src/Services/Transactions/Transactions.API
+    command: dotnet watch run --urls=http://0.0.0.0:8080
+
   marketdata-service:
     build:
       target: build
@@ -17,4 +47,14 @@ services:
     volumes:
       - .:/workspace
     working_dir: /workspace/src/Services/MarketData/MarketData.API
+    command: dotnet watch run --urls=http://0.0.0.0:8080
+
+  api-gateway:
+    build:
+      target: build
+    environment:
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+    volumes:
+      - .:/workspace
+    working_dir: /workspace/src/ApiGateways/ApiGateway
     command: dotnet watch run --urls=http://0.0.0.0:8080

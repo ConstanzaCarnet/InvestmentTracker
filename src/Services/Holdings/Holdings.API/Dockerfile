@@ -1,36 +1,28 @@
-# 1. Runtime
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
-WORKDIR /app
-EXPOSE 8080
-ENV ASPNETCORE_URLS=http://+:8080
+# syntax=docker/dockerfile:1
 
-# 2. Build
+# ===== STAGE 1 — build (SDK) =====
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /src
+WORKDIR /workspace
 
-# Copiamos respetando la estructura de carpetas real para que el .sln y las referencias no se rompan
-COPY ["src/Services/Holdings/Holdings.API/Holdings.API.csproj", "src/Services/Holdings/Holdings.API/"]
-COPY ["src/Services/Holdings/Holdings.Infrastructure/Holdings.Infrastructure.csproj", "src/Services/Holdings/Holdings.Infrastructure/"]
-COPY ["src/Services/Holdings/Holdings.Domain/Holdings.Domain.csproj", "src/Services/Holdings/Holdings.Domain/"]
-COPY ["src/Services/Holdings/Holdings.Application/Holdings.Application.csproj", "src/Services/Holdings/Holdings.Application/"]
-COPY ["src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj", "src/BuildingBlocks/EventBus.Messages/"]
+# (1) Solo .csproj (propios + BuildingBlocks que referencia) -> restore cacheable.
+COPY src/Services/Holdings/Holdings.API/Holdings.API.csproj                       src/Services/Holdings/Holdings.API/
+COPY src/Services/Holdings/Holdings.Application/Holdings.Application.csproj        src/Services/Holdings/Holdings.Application/
+COPY src/Services/Holdings/Holdings.Domain/Holdings.Domain.csproj                 src/Services/Holdings/Holdings.Domain/
+COPY src/Services/Holdings/Holdings.Infrastructure/Holdings.Infrastructure.csproj src/Services/Holdings/Holdings.Infrastructure/
+COPY src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj                src/BuildingBlocks/EventBus.Messages/
+COPY src/BuildingBlocks/Common.Authentication/Common.Authentication.csproj        src/BuildingBlocks/Common.Authentication/
+RUN dotnet restore src/Services/Holdings/Holdings.API/Holdings.API.csproj
 
-# Ahora el restore busca en la misma ruta donde copiamos
-RUN dotnet restore "src/Services/Holdings/Holdings.API/Holdings.API.csproj"
+# (2) Código + publish.
+COPY src/Services/Holdings/ src/Services/Holdings/
+COPY src/BuildingBlocks/ src/BuildingBlocks/
+RUN dotnet publish src/Services/Holdings/Holdings.API/Holdings.API.csproj \
+    -c Release -o /app/publish /p:UseAppHost=false
 
-# Copiamos todo el resto del c�digo
-COPY src src
-
-# Cambiamos al directorio de la API para buildear
-WORKDIR "src/Services/Holdings/Holdings.API"
-RUN dotnet build "Holdings.API.csproj" -c Release -o /app/build
-
-# 3. Publish
-FROM build AS publish
-RUN dotnet publish "Holdings.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
-
-# 4. Final
-FROM base AS final
+# ===== STAGE 2 — final (runtime) =====
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
+ENV ASPNETCORE_HTTP_PORTS=8080
+EXPOSE 8080
 ENTRYPOINT ["dotnet", "Holdings.API.dll"]

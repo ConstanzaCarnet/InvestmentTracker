@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using System.Threading.RateLimiting;
 using Common.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,20 +14,47 @@ builder.Services.AddReverseProxy()
 //     que deja lista la política "default" = requiere usuario autenticado.
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
+// (3) Rate limiting. Una política "per-user" que las rutas referencian por nombre
+//     (igual que AuthorizationPolicy). Algoritmo: fixed window (100 req / minuto).
+//     La CLAVE de partición decide a quién se le cuenta:
+//       - autenticado -> por userId (claim sub/NameIdentifier)
+//       - anónimo      -> por IP de origen
+//     Cada clave tiene su propio contador independiente.
+builder.Services.AddRateLimiter(options =>
+{
+    // Por defecto rechaza con 503; queremos el 429 estándar de "Too Many Requests".
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy("per-user", httpContext =>
+    {
+        var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var partitionKey = userId is not null
+            ? $"user:{userId}"
+            : $"ip:{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
+
+        return RateLimitPartition.GetFixedWindowLimiter(partitionKey, _ =>
+            new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,                 // requests permitidas...
+                Window = TimeSpan.FromMinutes(1),  // ...por ventana de 1 minuto
+                QueueLimit = 0                     // sin cola: lo que excede se rechaza ya
+            });
+    });
+});
+
 var app = builder.Build();
 
-// Endpoint propio del gateway (NO se reenvía a nadie): sirve para chequear
-// de un vistazo que el gateway está vivo.
+// Endpoint propio del gateway (NO se reenvía a nadie): chequeo rápido de vida.
 app.MapGet("/", () => "API Gateway up");
 
-// (3) Orden del pipeline (importa): autenticar -> autorizar -> proxy.
-//     Las rutas con "AuthorizationPolicy": "default" en appsettings rechazan
-//     aquí (401) los tokens ausentes/inválidos, antes de tocar el backend.
+// Orden del pipeline (importa): autenticar -> autorizar -> rate limit -> proxy.
+// Auth va ANTES del rate limiter para que la clave "per-user" ya tenga el userId.
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
-// (4) Enchufa YARP. Toda request que matchee una Route se reenvía a su Cluster
-//     (las protegidas, solo si ya pasaron la autorización de arriba).
+// Enchufa YARP. Cada Route aplica su AuthorizationPolicy/RateLimiterPolicy
+// (si las declara) antes de reenviar al Cluster.
 app.MapReverseProxy();
 
 app.Run();

@@ -1,0 +1,20 @@
+# docker-compose.override.yml  —  SOLO DESARROLLO
+#
+# Compose lo mergea AUTOMÁTICAMENTE sobre docker-compose.yml en `docker compose up`.
+# Reactiva el hot-reload (dotnet watch) para iterar cómodo.
+#
+#   docker compose up                      -> base + este override  (hot-reload)
+#   docker compose -f docker-compose.yml up -> SOLO la base          (imagen compilada, "como prod")
+#
+# Truco: build.target apunta al stage "build" del Dockerfile (tiene el SDK y el
+# restore ya hecho); encima montamos el repo vivo y corremos dotnet watch.
+services:
+  marketdata-service:
+    build:
+      target: build
+    environment:
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+    volumes:
+      - .:/workspace
+    working_dir: /workspace/src/Services/MarketData/MarketData.API
+    command: dotnet watch run --urls=http://0.0.0.0:8080

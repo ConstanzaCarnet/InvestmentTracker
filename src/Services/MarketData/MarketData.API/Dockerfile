@@ -1,37 +1,32 @@
-# Base runtime
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
-WORKDIR /app
-EXPOSE 8080
+# syntax=docker/dockerfile:1
 
-# Build
+# ============================================================
+# STAGE 1 — build: usa el SDK (pesado) solo para compilar.
+# El build context es la raíz del repo (ver docker-compose: context: .).
+# ============================================================
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /src
+WORKDIR /workspace
 
-# Copiar csproj (para cache de restore)
-COPY "src/Services/MarketData/MarketData.API/MarketData.API.csproj ./Services/MarketData/MarketData.API/"
-COPY "src/Services/MarketData/MarketData.Application/MarketData.Application.csproj ./Services/MarketData/MarketData.Application/"
-COPY "src/Services/MarketData/MarketData.Domain/MarketData.Domain.csproj ./Services/MarketData/MarketData.Domain/"
-COPY "src/Services/MarketData/MarketData.Infrastructure/MarketData.Infrastructure.csproj ./Services/MarketData/MarketData.Infrastructure/"
-COPY "src/BuildingBlocks/EventBus.Messages/EventBus.Messages.csproj ./BuildingBlocks/EventBus.Messages/"
+# (1) Copiar SOLO los .csproj y restaurar. Esta capa se cachea: mientras no
+#     cambien las dependencias, Docker la reutiliza y no rebaja NuGet.
+COPY src/Services/MarketData/MarketData.API/MarketData.API.csproj                       src/Services/MarketData/MarketData.API/
+COPY src/Services/MarketData/MarketData.Application/MarketData.Application.csproj        src/Services/MarketData/MarketData.Application/
+COPY src/Services/MarketData/MarketData.Domain/MarketData.Domain.csproj                 src/Services/MarketData/MarketData.Domain/
+COPY src/Services/MarketData/MarketData.Infrastructure/MarketData.Infrastructure.csproj src/Services/MarketData/MarketData.Infrastructure/
+RUN dotnet restore src/Services/MarketData/MarketData.API/MarketData.API.csproj
 
-# RESTORE (AHORA LA RUTA ES LA DEL CONTENEDOR)
-RUN dotnet restore "./Services/MarketData/MarketData.API/MarketData.API.csproj"
+# (2) Recién ahora copiar el código y publicar. Un cambio en un .cs invalida
+#     desde acá, pero NO el restore de arriba.
+COPY src/Services/MarketData/ src/Services/MarketData/
+RUN dotnet publish src/Services/MarketData/MarketData.API/MarketData.API.csproj \
+    -c Release -o /app/publish /p:UseAppHost=false
 
-# Copiar todo el repo
-COPY src src
-
-# Ir al proyecto real
-WORKDIR "/src/Services/MarketData/MarketData.API"
-
-# Build
-RUN dotnet build "MarketData.API.csproj" -c Release -o /app/build
-
-# Publish
-FROM build AS publish
-RUN dotnet publish "MarketData.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
-
-# Final
-FROM base AS final
+# ============================================================
+# STAGE 2 — final: imagen runtime (liviana, sin SDK, sin código fuente).
+# ============================================================
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
+ENV ASPNETCORE_HTTP_PORTS=8080
+EXPOSE 8080
 ENTRYPOINT ["dotnet", "MarketData.API.dll"]

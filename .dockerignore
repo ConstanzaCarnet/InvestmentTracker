@@ -1,0 +1,14 @@
+# Artefactos de build (se regeneran dentro de la imagen)
+**/bin/
+**/obj/
+
+# IDE / control de versiones
+.git/
+.github/
+.vs/
+**/*.user
+
+# Archivos que no influyen en la compilación
+**/*.md
+docker-compose*.yml
+.dockerignore

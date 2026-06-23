@@ -5,11 +5,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build & Run
 
 ```bash
-# Full stack (all 6 containers)
+# Full stack — COMPILED images ("like prod"), stable, comes up in ~seconds.
+# This is the base docker-compose.yml ONLY (the -f opts out of the dev override).
+docker compose -f docker-compose.yml up -d --build
+
+# Full stack — DEV hot-reload (dotnet watch). The docker-compose.override.yml is
+# auto-merged on a bare `up`, switching every service to the SDK build stage +
+# mounted source + `dotnet watch`. Convenient but fragile (see "Docker on Windows").
 docker compose up -d
 
-# Build a single service (from solution root)
-dotnet build src/Services/Holdings/Holdings.API/Holdings.API.csproj
+# Build a single service image
+docker compose -f docker-compose.yml build holdings-service
 
 # Generate a new EF migration (example for Holdings)
 dotnet ef migrations add <MigrationName> \
@@ -17,6 +23,10 @@ dotnet ef migrations add <MigrationName> \
   --startup-project src/Services/Holdings/Holdings.API/Holdings.API.csproj \
   --output-dir Data/Migrations
 ```
+
+Each service is built by a **multi-stage Dockerfile** (`src/**/<Service>.API/Dockerfile`, plus `src/ApiGateways/ApiGateway/Dockerfile`): an SDK stage restores only the needed `.csproj` (the service's own projects + the `BuildingBlocks` it references) and `dotnet publish`es; an `aspnet` runtime stage runs the DLLs. Build context is the repo root; `.dockerignore` keeps `bin/obj/.git/.vs` out.
+
+⚠️ **Do not run `dotnet build`/`dotnet publish` on the host while the dev (watch) stack is running** — it regenerates `obj/` in the mounted volume and crashes every container's polling file watcher. Use `docker compose -f docker-compose.yml build` instead, or run the compiled stack.
 
 There are no automated tests. Migrations run automatically on startup (retry loop, 10 attempts × 5s).
 
@@ -29,18 +39,21 @@ docker exec investment-tracker-sql-db bash -c \
 
 ## Services & Ports
 
-| Container | Local port | DB | Responsibility |
-|---|---|---|---|
-| `users-service` | 8080 | `UsersDb` | User registration, publishes `UserCreatedEvent` |
-| `holdings-service` | 8081 | `HoldingsDb` | Portfolio positions, account balances, market valuation |
-| `marketdata-service` | 8082 | — | Real-time prices via Yahoo Finance (no API key, free) |
-| `transactions-service` | 8083 | `TransactionDb` | Buy/sell ledger, Outbox publisher |
-| `investment-tracker-sql-db` | 1433 | — | SQL Server 2022 |
-| `rabbitmq-invest-tracker` | 5672 / 15672 | — | RabbitMQ + management UI |
+All four services listen on **container port `8080`**. Their host port mappings were removed — they're reachable only on the internal `investment-network` (by service name), behind the gateway.
 
-Swagger: `http://localhost:{port}/swagger`  
-RabbitMQ UI: `http://localhost:15672` (guest/guest)  
-SQL: `sa` / `WalletPassword123!`
+| Container | Host port | DB | Responsibility |
+|---|---|---|---|
+| `api-gateway` | **8000** | — | YARP reverse proxy — the only public entry point (see "API Gateway") |
+| `users-service` | — (internal) | `UsersDb` | User registration + JWT issuance, publishes `UserCreatedEvent` |
+| `holdings-service` | — (internal) | `HoldingsDb` | Portfolio positions, account balances, market valuation |
+| `marketdata-service` | — (internal) | — | Real-time prices via Yahoo Finance (no API key, free) |
+| `transactions-service` | — (internal) | `TransactionDb` | Buy/sell ledger, Outbox publisher |
+| `investment-tracker-sql-db` | 1433 | — | SQL Server 2022 (published for dev tooling only) |
+| `rabbitmq-invest-tracker` | 5672 / 15672 | — | RabbitMQ + management UI (dev tooling only) |
+
+All API traffic goes through `http://localhost:8000` with the gateway's pretty prefixes. To reach a service's own Swagger (ports are closed), use the gateway as a jump host: `docker compose exec api-gateway curl http://holdings-service:8080/swagger/v1/swagger.json`, or temporarily re-add a `ports:` mapping.
+
+RabbitMQ UI: `http://localhost:15672` (guest/guest) · SQL: `sa` / `WalletPassword123!`
 
 ## Architecture
 
@@ -162,9 +175,20 @@ Users **issues** JWT bearer tokens; Holdings and Transactions **validate** them 
 - **Two `JwtSettings`:** one in `Users.Infrastructure` (to ISSUE tokens) and one in `Common.Authentication` (to VALIDATE) — intentional, so `Users.Infrastructure` stays free of an ASP.NET Core dependency.
 - **Ownership:** `[Authorize]` only proves *authenticated*, not *owner*. Endpoints acting on a resource by id must also check the resource's `UserId` against `User.GetUserId()`. Transactions `Update`/`Delete` do this and return **404** (not 403) when the row belongs to someone else, so they don't leak its existence.
 
-## Docker on Windows — known issues
+## API Gateway (YARP)
 
-`dotnet watch` with Windows volume mounts can crash with `ArgumentException: duplicate key` in `PollingDirectoryWatcher`. Set `DOTNET_USE_POLLING_FILE_WATCHER: "true"` in docker-compose to mitigate. When `dotnet watch` is stuck in crash loop, use `docker compose restart <service>` to force a clean rebuild.
+`src/ApiGateways/ApiGateway` is a YARP reverse proxy — the single public entry point (`:8000`). It's a minimal-hosting ASP.NET app; all routing lives in `appsettings.json` under `ReverseProxy`.
+
+- **Routes vs Clusters:** a **Route** decides *whether/how* to accept a request (`Match` path, `AuthorizationPolicy`, `RateLimiterPolicy`, `Transforms`); a **Cluster** is the *destination* (`Destinations` → `http://<service>:8080`, internal DNS). Routes reference one Cluster by `ClusterId`; multiple Routes can share a Cluster (e.g. `/portfolio/*` and `/holdings/*` both → `holdings-cluster`).
+- **Pretty prefixes + transforms:** public paths are rewritten to each service's internal path via `PathPattern`. `/auth/*`,`/users/*`→`/api/...` (users); `/portfolio/*`→`/api/v1/portfolio/*`, `/holdings/*`→`/api/v1/holdings/*` (holdings); `/prices/*`→`/api/v1/prices/*` (marketdata); `/transactions/*`→`/api/transaction/*` (transactions, note singular internal).
+- **Auth at the edge (defense in depth):** the gateway validates JWT via the shared `Common.Authentication` (`AddJwtAuthentication`, same Key/Issuer/Audience). Only routes where *every* endpoint is `[Authorize]` carry `"AuthorizationPolicy": "default"` — currently `portfolio` and `transactions`. `auth`/`users`/`holdings`/`prices` stay open (mixed or public; protecting `/users` would block registration). Services still validate too — the gateway forwards the `Authorization` header unchanged.
+- **Rate limiting:** all routes carry `"RateLimiterPolicy": "per-user"` — a fixed-window limiter (100 req/min) keyed by userId (`sub`) when authenticated, falling back to client IP. Rejections return **429** (`RejectionStatusCode`). Pipeline order: `UseAuthentication` → `UseAuthorization` → `UseRateLimiter` → `MapReverseProxy`.
+
+## Docker on Windows — dev workflow & the watcher trap
+
+Two compose modes (see "Build & Run"): the **base** `docker-compose.yml` runs compiled multi-stage images (stable, no mounted volume, no watcher); `docker-compose.override.yml` (auto-merged on a bare `docker compose up`) switches to `build.target: build` + mounted source + `dotnet watch` for hot-reload.
+
+The watch/override mode is convenient but fragile on Windows volume mounts — the `PollingDirectoryWatcher` crashes two ways: `ArgumentException: duplicate key` (when host `dotnet build` leaves both `obj/Debug` and `obj/Release`) and `IOException: Cannot allocate memory` (OOM, exit 134). A dead service drops off Docker DNS, so the gateway logs `Name or service not known (<svc>:8080)` and returns 502. Mitigations: prefer the compiled base stack for heavy work; never `dotnet build` on the host while watch is up (clean with `find src -type d \( -path '*/obj/Release' -o -path '*/bin/Release' \) -exec rm -rf {} +`); prefer `docker compose up -d <svc>` over `docker compose restart <svc>` (restart can leave stale DNS on Docker Desktop/Windows).
 
 ## Configuration by environment
 

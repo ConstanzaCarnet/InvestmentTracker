@@ -13,16 +13,20 @@ public class PositionDto
     public decimal TotalRealQuantity { get; set; }
 
     public decimal TotalInvested { get; set; }
-    /// <summary>Precio promedio de compra por unidad NOMINAL = TotalInvested / TotalQuantity (verifica: × TotalQuantity = TotalInvested)</summary>
+    /// <summary>Precio promedio de compra por unidad NOMINAL = TotalInvested / TotalQuantity (verifica: × TotalQuantity = TotalInvested). Siempre disponible (no depende de MarketData).</summary>
     public decimal AveragePurchasePrice { get; set; }
-    /// <summary>Precio actual por unidad NOMINAL = CurrentValue / TotalQuantity (verifica: × TotalQuantity = CurrentValue)</summary>
-    public decimal CurrentPrice { get; set; }
-    public decimal CurrentValue { get; set; }
 
-    public decimal PnL { get; set; }
-    public decimal PnLPercentage { get; set; }
+    /// <summary>true si se obtuvo el precio actual desde MarketData. Si es false, los campos de mercado/PnL son null (no se fabrica un valor 0).</summary>
+    public bool PriceAvailable { get; set; } = true;
 
-    public decimal PortfolioPercentage { get; set; }
+    /// <summary>Precio actual por unidad NOMINAL = CurrentValue / TotalQuantity (verifica: × TotalQuantity = CurrentValue). null si PriceAvailable es false.</summary>
+    public decimal? CurrentPrice { get; set; }
+    public decimal? CurrentValue { get; set; }
+
+    public decimal? PnL { get; set; }
+    public decimal? PnLPercentage { get; set; }
+
+    public decimal? PortfolioPercentage { get; set; }
 
     public List<PositionLotDto> Lots { get; set; } = new();
 

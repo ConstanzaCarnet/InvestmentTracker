@@ -24,7 +24,12 @@ public class PortfolioService : IPortfolioService, IHoldingsService
         result.AccountNumber = account?.AccountNumber;
 
         if (!positions.Any())
+        {
+            result.TotalMarketValue = 0;
+            result.TotalPnL = 0;
+            result.TotalPnLPercentage = 0;
             return result;
+        }
 
         var priceItems = positions
             .Select(p => new PriceRequestItem { InstrumentId = p.InstrumentId, Ticker = p.Ticker })
@@ -32,24 +37,21 @@ public class PortfolioService : IPortfolioService, IHoldingsService
 
         var prices = await _marketData.GetPricesAsync(priceItems);
 
+        decimal availableMarketValue = 0;
+
         foreach (var position in positions)
         {
-            // price = precio de la acción SUBYACENTE (unidad real). El valor de mercado
-            // se calcula contra la cantidad real (subyacente), por eso usa TotalRealQuantity.
-            var price = prices.GetValueOrDefault(position.InstrumentId);
             var invested = position.TotalInvestedAmount;
-            var currentValue = position.TotalRealQuantity * price;
-            var pnl = currentValue - invested;
 
-            // Precios por unidad expresados en la MISMA unidad que TotalQuantity (nominal,
-            // ej. CEDEARs) para que el balance sea verificable por el cliente:
-            //   avgPrice * TotalQuantity == invested  y  currentPrice * TotalQuantity == currentValue
+            // price = precio de la acción SUBYACENTE (unidad real). Ausente o <= 0 ==> no disponible
+            // (MarketData caído o sin cotización); en ese caso NO fabricamos valor de mercado ni PnL.
+            var hasPrice = prices.TryGetValue(position.InstrumentId, out var price) && price > 0;
+
+            // Precio promedio por unidad NOMINAL (ej. CEDEARs): no depende de MarketData,
+            // siempre verificable -> avgPrice * TotalQuantity == invested.
             var avgPurchasePrice = position.TotalQuantity == 0
                 ? 0
                 : invested / position.TotalQuantity;
-            var currentPricePerUnit = position.TotalQuantity == 0
-                ? 0
-                : currentValue / position.TotalQuantity;
 
             // Moneda principal: el lote con mayor InvestedAmount
             var primaryLot = position.Lots
@@ -67,12 +69,7 @@ public class PortfolioService : IPortfolioService, IHoldingsService
 
                 TotalInvested = invested,
                 AveragePurchasePrice = avgPurchasePrice,
-
-                CurrentPrice = currentPricePerUnit,
-                CurrentValue = currentValue,
-
-                PnL = pnl,
-                PnLPercentage = invested == 0 ? 0 : pnl / invested * 100,
+                PriceAvailable = hasPrice,
 
                 Lots = position.Lots.Select(l => new PositionLotDto
                 {
@@ -89,21 +86,43 @@ public class PortfolioService : IPortfolioService, IHoldingsService
                 }).ToList()
             };
 
+            if (hasPrice)
+            {
+                // Valor de mercado contra la cantidad real (subyacente). El precio actual por
+                // unidad nominal se deriva del valor para que cierre: currentPrice * qty == value.
+                var currentValue = position.TotalRealQuantity * price;
+                dto.CurrentValue = currentValue;
+                dto.CurrentPrice = position.TotalQuantity == 0 ? 0 : currentValue / position.TotalQuantity;
+                dto.PnL = currentValue - invested;
+                dto.PnLPercentage = invested == 0 ? 0 : (currentValue - invested) / invested * 100;
+                availableMarketValue += currentValue;
+            }
+            else
+            {
+                // Sin precio: campos de mercado quedan null y el portfolio se marca incompleto.
+                result.PricesComplete = false;
+            }
+
             result.Positions.Add(dto);
-            result.TotalMarketValue += currentValue;
             result.TotalInvested += invested;
         }
 
-        result.TotalPnL = result.TotalMarketValue - result.TotalInvested;
-        result.TotalPnLPercentage = result.TotalInvested == 0
-            ? 0
-            : result.TotalPnL / result.TotalInvested * 100;
-
-        foreach (var p in result.Positions)
+        // Totales de mercado/PnL solo si TODAS las posiciones tienen precio; un total parcial
+        // (valor de algunas posiciones contra el costo de todas) no es verificable.
+        if (result.PricesComplete)
         {
-            p.PortfolioPercentage = result.TotalMarketValue == 0
+            result.TotalMarketValue = availableMarketValue;
+            result.TotalPnL = availableMarketValue - result.TotalInvested;
+            result.TotalPnLPercentage = result.TotalInvested == 0
                 ? 0
-                : p.CurrentValue / result.TotalMarketValue * 100;
+                : result.TotalPnL / result.TotalInvested * 100;
+
+            foreach (var p in result.Positions)
+            {
+                p.PortfolioPercentage = availableMarketValue == 0
+                    ? 0
+                    : (p.CurrentValue ?? 0) / availableMarketValue * 100;
+            }
         }
 
         return result;

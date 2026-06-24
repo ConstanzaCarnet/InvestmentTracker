@@ -49,9 +49,25 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TransactionDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
-    await db.Database.MigrateAsync();
-    await InstrumentsSeeder.SeedAsync(db);
+    // Retry de migración: en un `docker compose up` en frío SQL Server puede no estar
+    // listo todavía. Sin esto el servicio crashea al arrancar (race con la BD).
+    for (var attempt = 1; attempt <= 10; attempt++)
+    {
+        try
+        {
+            await db.Database.MigrateAsync();
+            await InstrumentsSeeder.SeedAsync(db);
+            logger.LogInformation("Database migrated and seeded successfully.");
+            break;
+        }
+        catch (Exception ex) when (attempt < 10)
+        {
+            logger.LogWarning("Migration attempt {Attempt}/10 failed: {Message}. Waiting 5s...", attempt, ex.Message);
+            await Task.Delay(TimeSpan.FromSeconds(5));
+        }
+    }
 }
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

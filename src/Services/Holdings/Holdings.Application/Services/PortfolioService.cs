@@ -34,10 +34,22 @@ public class PortfolioService : IPortfolioService, IHoldingsService
 
         foreach (var position in positions)
         {
+            // price = precio de la acción SUBYACENTE (unidad real). El valor de mercado
+            // se calcula contra la cantidad real (subyacente), por eso usa TotalRealQuantity.
             var price = prices.GetValueOrDefault(position.InstrumentId);
             var invested = position.TotalInvestedAmount;
             var currentValue = position.TotalRealQuantity * price;
             var pnl = currentValue - invested;
+
+            // Precios por unidad expresados en la MISMA unidad que TotalQuantity (nominal,
+            // ej. CEDEARs) para que el balance sea verificable por el cliente:
+            //   avgPrice * TotalQuantity == invested  y  currentPrice * TotalQuantity == currentValue
+            var avgPurchasePrice = position.TotalQuantity == 0
+                ? 0
+                : invested / position.TotalQuantity;
+            var currentPricePerUnit = position.TotalQuantity == 0
+                ? 0
+                : currentValue / position.TotalQuantity;
 
             // Moneda principal: el lote con mayor InvestedAmount
             var primaryLot = position.Lots
@@ -54,11 +66,9 @@ public class PortfolioService : IPortfolioService, IHoldingsService
                 TotalRealQuantity = position.TotalRealQuantity,
 
                 TotalInvested = invested,
-                AveragePurchasePrice = position.TotalRealQuantity == 0
-                    ? 0
-                    : invested / position.TotalRealQuantity,
+                AveragePurchasePrice = avgPurchasePrice,
 
-                CurrentPrice = price,
+                CurrentPrice = currentPricePerUnit,
                 CurrentValue = currentValue,
 
                 PnL = pnl,

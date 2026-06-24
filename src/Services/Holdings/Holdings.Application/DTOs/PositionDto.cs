@@ -13,8 +13,9 @@ public class PositionDto
     public decimal TotalRealQuantity { get; set; }
 
     public decimal TotalInvested { get; set; }
-    /// <summary>Precio promedio de compra = TotalInvested / TotalRealQuantity</summary>
+    /// <summary>Precio promedio de compra por unidad NOMINAL = TotalInvested / TotalQuantity (verifica: × TotalQuantity = TotalInvested)</summary>
     public decimal AveragePurchasePrice { get; set; }
+    /// <summary>Precio actual por unidad NOMINAL = CurrentValue / TotalQuantity (verifica: × TotalQuantity = CurrentValue)</summary>
     public decimal CurrentPrice { get; set; }
     public decimal CurrentValue { get; set; }
 

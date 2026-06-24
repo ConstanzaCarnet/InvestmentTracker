@@ -19,6 +19,15 @@ services:
       - sql-data:/var/opt/mssql
     networks:
       - investment-network
+    # Healthcheck: el server está "healthy" recién cuando acepta consultas. Los
+    # servicios con BD esperan esto (depends_on: service_healthy) para no migrar
+    # contra un SQL todavía recuperando bases (race del error 1801 en cold start).
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q \"SELECT 1\" -b"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
 
   # -----------------------------
   # RABBITMQ
@@ -54,8 +63,10 @@ services:
       Jwt__Audience: "InvestmentTracker.Clients"
       Jwt__ExpiryMinutes: "60"
     depends_on:
-      - rabbitmq
-      - users-db
+      rabbitmq:
+        condition: service_started
+      users-db:
+        condition: service_healthy
     networks:
       - investment-network
 
@@ -79,9 +90,12 @@ services:
       Jwt__Audience: "InvestmentTracker.Clients"
       Jwt__ExpiryMinutes: "60"
     depends_on:
-      - rabbitmq
-      - users-db
-      - marketdata-service
+      rabbitmq:
+        condition: service_started
+      users-db:
+        condition: service_healthy
+      marketdata-service:
+        condition: service_started
     networks:
       - investment-network
 
@@ -104,8 +118,10 @@ services:
       Jwt__Audience: "InvestmentTracker.Clients"
       Jwt__ExpiryMinutes: "60"
     depends_on:
-      - rabbitmq
-      - users-db
+      rabbitmq:
+        condition: service_started
+      users-db:
+        condition: service_healthy
     networks:
       - investment-network
 

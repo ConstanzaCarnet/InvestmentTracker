@@ -4,10 +4,29 @@ using Common.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Nombre de la política CORS que aplica el pipeline más abajo.
+const string FrontendCorsPolicy = "FrontendCors";
+
 // (1) Registra el motor de YARP y le dice que lea sus rutas/clusters
 //     desde la sección "ReverseProxy" de appsettings.json.
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
+
+// (1b) CORS para frontends web (browser). El cliente WinForms de escritorio
+//      ignora CORS, pero un futuro frontend web sí lo necesita. Los orígenes
+//      permitidos se leen de "Cors:AllowedOrigins" (lista blanca por entorno).
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? Array.Empty<string>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(FrontendCorsPolicy, policy =>
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials()); // permite enviar el Authorization/cookies desde el browser
+});
 
 // (2) Validación de JWT con el MISMO helper que Holdings/Transactions
 //     (misma Key/Issuer/Audience). Internamente también llama a AddAuthorization(),
@@ -47,8 +66,10 @@ var app = builder.Build();
 // Endpoint propio del gateway (NO se reenvía a nadie): chequeo rápido de vida.
 app.MapGet("/", () => "API Gateway up");
 
-// Orden del pipeline (importa): autenticar -> autorizar -> rate limit -> proxy.
+// Orden del pipeline (importa): CORS -> autenticar -> autorizar -> rate limit -> proxy.
+// CORS va primero para que responda los preflight (OPTIONS) antes de auth/rate-limit.
 // Auth va ANTES del rate limiter para que la clave "per-user" ya tenga el userId.
+app.UseCors(FrontendCorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();

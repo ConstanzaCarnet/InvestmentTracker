@@ -8,6 +8,11 @@
 
   <ItemGroup>
     <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
+    <!-- Logging estructurado: integración de Serilog con el host ASP.NET Core
+         (incluye UseSerilogRequestLogging y el sink de consola). -->
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+    <!-- Formatter JSON compacto (CLEF) para escribir cada log como una línea JSON. -->
+    <PackageReference Include="Serilog.Formatting.Compact" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>
